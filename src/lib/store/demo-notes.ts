@@ -17,6 +17,8 @@ export interface DemoNote {
   supps: string[];
   time: string;
   archivedAt: number;
+  /** 版本快照（M2-6，最多保留 10 条） */
+  versions?: { label: string; time: string; kpCount: number; kps: { t: string; d: string; kinds: KpKind[] }[] }[];
 }
 
 const KEY = "clarify:demo-notes";
@@ -50,8 +52,24 @@ export function saveDemoNotes(list: DemoNote[]): void {
 export function saveDemoNote(note: DemoNote): void {
   const list = loadDemoNotes();
   const idx = list.findIndex((n) => n.id === note.id);
-  if (idx >= 0) list[idx] = note;
-  else list.unshift(note);
+  if (idx >= 0) {
+    const prev = list[idx];
+    // 内容有变化才生成快照
+    if (JSON.stringify(prev.kps) !== JSON.stringify(note.kps) || prev.title !== note.title) {
+      const snapshot = {
+        label: "版本 " + ((prev.versions?.length ?? 0) + 1),
+        time: new Date().toLocaleString("zh-CN", { hour12: false }),
+        kpCount: prev.kps.length,
+        kps: prev.kps,
+      };
+      note.versions = [snapshot, ...(prev.versions ?? [])].slice(0, 10);
+    } else {
+      note.versions = prev.versions;
+    }
+    list[idx] = note;
+  } else {
+    list.unshift(note);
+  }
   saveDemoNotes(list);
 }
 

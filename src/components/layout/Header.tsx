@@ -35,14 +35,18 @@ export function Header() {
           Clarify
         </Link>
 
-        <div className="hidden flex-1 items-center gap-2 rounded-btn border border-border bg-bg px-3 py-2 text-ink-3 transition-colors focus-within:border-primary md:flex md:max-w-[520px]">
+        <form
+          action="/library"
+          className="hidden flex-1 items-center gap-2 rounded-btn border border-border bg-bg px-3 py-2 text-ink-3 transition-colors focus-within:border-primary md:flex md:max-w-[520px]"
+        >
           <Icon name="search" className="h-4 w-4" />
           <input
             type="text"
-            placeholder="搜索笔记、知识点、学科..."
+            name="keyword"
+            placeholder="搜索笔记、知识点、学科...（回车搜索）"
             className="w-full bg-transparent text-sm text-ink-1 outline-none"
           />
-        </div>
+        </form>
 
         <div className="ml-auto flex items-center gap-3">
           <Button href="/ingest" size="md">
