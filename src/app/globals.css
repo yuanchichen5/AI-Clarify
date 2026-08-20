@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Clarify 设计 Token（产品设计文档 v1.0 · 第二节）
+   Tailwind v4 CSS-first 配置（等价于 v3 的 tailwind.config 主题）
+   - 极简冷调紫白风格，无阴影设计
+   - 所有色值 / 字号 / 间距 / 圆角均为语义 Token，禁止硬编码
+   ============================================================ */
+@theme {
+  /* ---- 配色系统 ---- */
+  --color-primary: #7c6aed; /* 品牌主色：主按钮、激活状态、重点标识 */
+  --color-primary-hover: #6b59de; /* 主色 hover */
+  --color-primary-soft: #efecfc; /* 主色浅底：选中背景、标签 */
+  --color-bg: #f8f7fc; /* 页面背景 / 侧边栏底色 */
+  --color-card: #ffffff; /* 卡片 / 输入框 / 弹窗 / 消息气泡 */
+  --color-border: #e8e6f2; /* 分隔线、卡片边框、输入框边框 */
+  --color-border-hover: #c8c3e0; /* Hover 边框加深色 */
+  --color-ink-1: #2b2a35; /* 一级文字：标题、正文核心 */
+  --color-ink-2: #6b6a78; /* 二级文字：辅助说明、时间戳 */
+  --color-ink-3: #a09fb0; /* 三级文字：占位符、未激活 */
+  --color-success: #3cc28a; /* 成功：答对、已掌握、完成 */
+  --color-success-soft: #e9f8f1;
+  --color-warning: #f5a524; /* 警告：提醒、难点、待确认 */
+  --color-warning-soft: #fef4e2;
+  --color-error: #f87171; /* 错误：失败、答错、薄弱 */
+  --color-warning-ink: #c77e0c; /* 琥珀标签深色文字 */
+  --color-success-ink: #1f9e6e; /* 绿色标签深色文字 */
+  --color-error-soft: #fef0f0;
+
+  /* ---- 目录与标签 8 色系（低饱和冷调）---- */
+  --color-tag-0: #7c6aed;
+  --color-tag-0-soft: #efecfc; /* 紫罗兰 */
+  --color-tag-1: #2a9db8;
+  --color-tag-1-soft: #e3f2f7; /* 天青 */
+  --color-tag-2: #2e9e6b;
+  --color-tag-2-soft: #e5f4ee; /* 松绿 */
+  --color-tag-3: #c7760c;
+  --color-tag-3-soft: #fdf0e2; /* 琥珀 */
+  --color-tag-4: #d65b7d;
+  --color-tag-4-soft: #fce9ee; /* 樱粉 */
+  --color-tag-5: #4a62c4;
+  --color-tag-5-soft: #e8ecfa; /* 靛蓝 */
+  --color-tag-6: #6b7280;
+  --color-tag-6-soft: #edf0f4; /* 灰蓝 */
+  --color-tag-7: #8a8896;
+  --color-tag-7-soft: #f1f0f6; /* 浅灰 */
+
+  /* ---- 圆角四档语义 ---- */
+  --radius-btn: 8px; /* 按钮、输入框 */
+  --radius-card: 12px; /* 内容卡片 */
+  --radius-tag: 6px; /* 标签、徽标 */
+  --radius-modal: 16px; /* 弹窗 */
+
+  /* ---- 间距系统（8px 基础栅格）---- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* ---- 字体 ---- */
+  --font-sans:
+    "SF Pro Text", "SF Pro Display", "PingFang SC", "DingTalk Progress", "Source Han Sans SC",
+    "思源黑体", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+}
+
+/* ---- 基础规则 ---- */
+@layer base {
+  html {
+    color: var(--color-ink-1);
+  }
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink-1);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+  }
+  ::placeholder {
+    color: var(--color-ink-3);
+  }
+  /* 无阴影设计原则：层级完全依靠 border + 留白区分，全项目禁用 shadow-* */
+  button {
+    font-family: inherit;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* ---- 通用组件类（设计文档规定的交互动效） ---- */
+@layer components {
+  /* 主按钮点击 0.1s 缩放反馈 */
+  .press-feedback {
+    transition: transform 0.1s ease;
+  }
+  .press-feedback:active {
+    transform: scale(0.97);
+  }
+  /* 可点击元素 Hover：边框加深、背景微亮（无阴影变化） */
+  .hoverable {
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .hoverable:hover {
+    border-color: var(--color-border-hover);
+  }
+}

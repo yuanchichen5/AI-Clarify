@@ -1,0 +1,3381 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clarify · 高保真原型</title>
+<style>
+  :root {
+    --primary: #7C6AED;
+    --primary-soft: #EFECFC;
+    --primary-hover: #6B59DE;
+    --bg: #F8F7FC;
+    --card: #FFFFFF;
+    --border: #E8E6F2;
+    --border-hover: #C8C3E0;
+    --ink-1: #2B2A35;
+    --ink-2: #6B6A78;
+    --ink-3: #A09FB0;
+    --success: #3CC28A;
+    --success-soft: #E9F8F1;
+    --warning: #F5A524;
+    --warning-soft: #FEF4E2;
+    --error: #F87171;
+    --error-soft: #FEF0F0;
+    --font: -apple-system, "SF Pro Text", "SF Pro Display", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "DingTalk Progress", sans-serif;
+    --r-btn: 8px;
+    --r-card: 12px;
+    --r-tag: 6px;
+    --r-modal: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink-1);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  a { color: var(--primary); text-decoration: none; }
+  ::placeholder { color: var(--ink-3); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  /* ===== 通用图标 ===== */
+  .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+  .ic { width: 16px; height: 16px; display: inline-block; vertical-align: -3px; flex-shrink: 0; }
+
+  /* ===== 顶栏 ===== */
+  .app-header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-row {
+    max-width: 1440px; margin: 0 auto; height: 64px;
+    display: flex; align-items: center; gap: 24px; padding: 0 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; letter-spacing: .01em; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; }
+  .searchbox {
+    flex: 1; max-width: 520px; height: 40px; display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-btn); padding: 0 12px; color: var(--ink-3);
+    transition: border-color .15s ease;
+  }
+  .searchbox:focus-within { border-color: var(--primary); }
+  .searchbox input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--ink-1); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border: 1px solid var(--border); }
+
+  .subnav {
+    max-width: 1440px; margin: 0 auto; display: flex; align-items: center; gap: 4px; padding: 0 24px; height: 46px; overflow-x: auto;
+  }
+  .subnav a {
+    position: relative; padding: 10px 16px; font-size: 14px; color: var(--ink-2); border-radius: var(--r-btn); white-space: nowrap;
+    transition: color .15s ease, background .15s ease;
+  }
+  .subnav a:hover { color: var(--ink-1); background: var(--bg); }
+  .subnav a.active { color: var(--primary); font-weight: 500; }
+  .subnav a.active::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -4px; height: 2px; border-radius: 1px; background: var(--primary); }
+
+  /* ===== 按钮 ===== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 36px; padding: 0 16px; border-radius: var(--r-btn); border: 1px solid transparent;
+    font-size: 14px; font-weight: 400; transition: background .1s ease, color .1s ease, border-color .1s ease, transform .1s ease;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-ghost { background: var(--card); border-color: var(--border); color: var(--ink-2); }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--ink-1); background: var(--bg); }
+  .btn-soft { background: var(--primary-soft); color: var(--primary); }
+  .btn-soft:hover { background: #E7E2FB; }
+  .btn-danger { background: var(--card); border-color: var(--border); color: var(--error); }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12px; }
+  .btn-block { width: 100%; }
+  .btn-lg { height: 44px; padding: 0 24px; font-size: 15px; }
+
+  /* ===== 主体框架 ===== */
+  .screens { min-height: calc(100vh - 110px - 56px); }
+  .page { display: none; max-width: 1440px; margin: 0 auto; padding: 0 24px 48px; }
+  .page.active { display: block; }
+  .page-hd { display: flex; align-items: center; gap: 16px; padding: 24px 0 16px; }
+  .page-hd h1 { font-size: 28px; font-weight: 600; letter-spacing: -.01em; }
+  .page-hd .spacer { flex: 1; }
+
+  /* ===== 卡片 ===== */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-card); }
+  .card-pad { padding: 20px; }
+
+  /* ===== 标签 ===== */
+  .tag { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 8px; border-radius: var(--r-tag); font-size: 12px; line-height: 1; }
+  .tag-purple { background: var(--primary-soft); color: var(--primary); }
+  .tag-amber { background: var(--warning-soft); color: #C77E0C; }
+  .tag-green { background: var(--success-soft); color: #1F9E6E; }
+  .tag-grey { background: #F1F0F6; color: var(--ink-3); }
+  .tag-red { background: var(--error-soft); color: var(--error); }
+
+  /* ===== 页脚 ===== */
+  .app-footer { border-top: 1px solid var(--border); background: var(--card); }
+  .footer-inner { max-width: 1440px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--ink-3); }
+  .footer-inner .right { margin-left: auto; display: flex; gap: 16px; }
+  .footer-inner a { color: var(--ink-3); }
+  .footer-inner a:hover { color: var(--primary); }
+
+  /* ================= 知识库 双栏 ================= */
+  .two-col { display: flex; gap: 24px; align-items: flex-start; }
+  .sidebar-lib { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+  .tree, .note-list, .user-info { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-card); }
+  .tree { padding: 12px; }
+  .tree-title, .list-title { font-size: 12px; color: var(--ink-3); padding: 4px 8px 8px; }
+  .tree-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: var(--r-btn); color: var(--ink-2); cursor: pointer; font-size: 14px; }
+  .tree-item:hover { background: var(--bg); color: var(--ink-1); }
+  .tree-item.active { color: var(--primary); background: var(--primary-soft); font-weight: 500; }
+  .tree-item .count { margin-left: auto; font-size: 12px; color: var(--ink-3); }
+  .tree-sub { margin-left: 20px; border-left: 1px solid var(--border); padding-left: 8px; }
+  .note-item { padding: 10px 12px; border-radius: var(--r-btn); cursor: pointer; }
+  .note-item:hover { background: var(--bg); }
+  .note-item.active { background: var(--primary-soft); }
+  .note-item .t { font-size: 14px; color: var(--ink-1); font-weight: 500; }
+  .note-item .m { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--ink-3); }
+  .user-info { padding: 12px; display: flex; align-items: center; gap: 10px; }
+  .user-info .name { font-size: 14px; font-weight: 500; }
+  .user-info .mail { font-size: 12px; color: var(--ink-3); }
+
+  .lib-main { flex: 1; min-width: 0; }
+  .crumb { font-size: 13px; color: var(--ink-3); margin-bottom: 8px; }
+  .crumb b { color: var(--ink-2); font-weight: 500; }
+  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-btn); overflow: hidden; }
+  .seg button { border: none; background: var(--card); color: var(--ink-2); padding: 7px 14px; font-size: 13px; }
+  .seg button.active { background: var(--primary-soft); color: var(--primary); font-weight: 500; }
+  .select { height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--r-btn); background: var(--card); color: var(--ink-2); font-size: 13px; font-family: inherit; }
+
+  .note-title { font-size: 22px; font-weight: 600; border: none; outline: none; width: 100%; color: var(--ink-1); background: transparent; margin-bottom: 6px; }
+  .note-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+
+  .kp { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-card); margin-bottom: 12px; background: var(--card); }
+  .kp.focus { border-left: 3px solid var(--primary); }
+  .kp.difficulty { border-left: 3px solid var(--warning); }
+  .kp.redun { border-left: 3px solid var(--ink-3); }
+  .kp .body { flex: 1; }
+  .kp .kpt { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .kp .kpd { font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+  .kp .chev { color: var(--ink-3); cursor: pointer; align-self: flex-start; transition: transform .15s ease; }
+  .kp.collapsed .kpd { display: none; }
+  .kp.collapsed .chev { transform: rotate(-90deg); }
+
+  .block-title { font-size: 20px; font-weight: 600; margin: 24px 0 12px; }
+  .diff-item { padding: 12px 16px; border-left: 3px solid var(--warning); border: 1px solid var(--border); border-radius: var(--r-card); margin-bottom: 10px; background: var(--card); }
+  .diff-item .t { font-weight: 500; }
+  .diff-item .d { color: var(--ink-2); margin-top: 4px; }
+  .supp-list { padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); }
+  .supp-list li { margin-left: 18px; color: var(--ink-2); margin-bottom: 4px; }
+
+  .edit-bar { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--ink-3); }
+  .edit-bar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  /* 思维导图视图 */
+  .mind-view { display: none; }
+  .mind-view.active { display: block; }
+  .note-view { display: block; }
+  .note-view.hidden { display: none; }
+  .mind-canvas { min-height: 480px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); display: flex; align-items: center; justify-content: center; }
+  .mind-zoom { display: flex; gap: 4px; }
+  .icon-btn {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--ink-2); border-radius: var(--r-btn); cursor: pointer;
+    transition: all .15s ease;
+  }
+  .icon-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+
+  /* ================= 录入页 ================= */
+  .ingest-max { max-width: 880px; margin: 0 auto; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 16px; border: none; background: none; color: var(--ink-2); font-size: 14px; position: relative; }
+  .tab.active { color: var(--primary); font-weight: 500; }
+  .tab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; background: var(--primary); border-radius: 1px; }
+  .upload-zone { border: 1.5px dashed var(--border-hover); border-radius: var(--r-modal); background: var(--card); padding: 48px 24px; text-align: center; color: var(--ink-2); transition: border-color .15s ease, background .15s ease; }
+  .upload-zone:hover { border-color: var(--primary); }
+  .upload-zone .ic-big { color: var(--primary); margin: 0 auto 12px; }
+  .upload-zone .hint { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+  .text-input { display: none; }
+  .text-input.active { display: block; }
+  .textarea { width: 100%; min-height: 180px; border: 1px solid var(--border); border-radius: var(--r-card); padding: 14px; font-size: 14px; color: var(--ink-1); font-family: inherit; resize: vertical; outline: none; }
+  .textarea:focus { border-color: var(--primary); }
+  .queue-title { font-size: 13px; color: var(--ink-3); margin: 20px 0 10px; }
+  .queue-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r-btn); background: var(--card); margin-bottom: 8px; }
+  .queue-item .fname { flex: 1; font-size: 14px; }
+  .queue-item .fstat { font-size: 12px; }
+  .fstat.ok { color: var(--success); }
+  .fstat.fail { color: var(--error); }
+  .fstat.wait { color: var(--warning); }
+  .progress { width: 120px; height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+  .progress > i { display: block; height: 100%; background: var(--primary); border-radius: 3px; }
+  .ingest-foot { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+
+  /* ================= 对话页 ================= */
+  .sidebar-chat { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+  .chat-hist { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; }
+  .chat-item { padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .chat-item:last-child { border-bottom: none; }
+  .chat-item:hover { background: var(--bg); }
+  .chat-item.active { background: var(--primary-soft); }
+  .chat-item .t { font-size: 14px; font-weight: 500; }
+  .chat-item .m { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); min-height: 70vh; }
+  .chat-head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .chat-head .t { font-size: 16px; font-weight: 500; }
+  .chat-body { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+  .msg { display: flex; gap: 10px; max-width: 76%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .bubble { padding: 10px 14px; border-radius: var(--r-card); font-size: 14px; border: 1px solid var(--border); }
+  .msg.user .bubble { background: var(--primary-soft); border-color: transparent; color: var(--ink-1); }
+  .msg.ai .bubble { background: var(--card); }
+  .msg.ai .bubble ol { margin: 6px 0 0 18px; color: var(--ink-2); }
+  .avatar-ai { width: 28px; height: 28px; border-radius: 8px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cursor { display: inline-block; width: 8px; height: 16px; background: var(--primary); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .chat-input { display: flex; align-items: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+  .chat-input textarea { flex: 1; min-height: 44px; max-height: 140px; border: 1px solid var(--border); border-radius: var(--r-btn); padding: 10px 12px; font-size: 14px; resize: vertical; font-family: inherit; outline: none; }
+  .chat-input textarea:focus { border-color: var(--primary); }
+
+  /* ================= 复习页 ================= */
+  .review-max { max-width: 720px; margin: 0 auto; }
+  .mode-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .mode-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .mode-card:hover { border-color: var(--primary); }
+  .mode-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+  .mode-card .ic-big { color: var(--primary); margin-bottom: 12px; }
+  .mode-card .t { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+  .mode-card .d { font-size: 12px; color: var(--ink-3); }
+  .review-foot { display: flex; align-items: center; gap: 12px; justify-content: center; }
+
+  .progress-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .progress-bar { flex: 1; height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+  .progress-bar > i { display: block; height: 100%; background: var(--primary); border-radius: 4px; transition: width .2s ease; }
+  .question-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); margin-bottom: 16px; }
+  .q-tag { font-size: 12px; color: var(--primary); margin-bottom: 8px; }
+  .q-title { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
+  .option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-btn); margin-bottom: 8px; cursor: pointer; font-size: 14px; }
+  .option:hover { border-color: var(--border-hover); }
+  .option.selected { border-color: var(--primary); background: var(--primary-soft); }
+  .option .key { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-2); flex-shrink: 0; }
+  .option.selected .key { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .quiz-nav { display: flex; align-items: center; gap: 12px; justify-content: space-between; margin-top: 8px; }
+
+  .result-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { padding: 18px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); text-align: center; }
+  .stat-card .num { font-size: 28px; font-weight: 600; }
+  .stat-card .lbl { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .stat-card.good .num { color: var(--success); }
+  .stat-card.warn .num { color: var(--warning); }
+  .answer-card { border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); margin-bottom: 16px; overflow: hidden; }
+  .answer-card.correct { border-color: var(--success); }
+  .answer-card.wrong { border-color: var(--error); }
+  .answer-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 500; }
+  .answer-head .ok { color: var(--success); }
+  .answer-head .bad { color: var(--error); }
+  .answer-body { padding: 16px; }
+  .answer-row { margin-bottom: 10px; font-size: 14px; }
+  .answer-row .k { color: var(--ink-3); margin-right: 6px; }
+  .explain { border-left: 3px solid var(--success); background: var(--success-soft); padding: 12px 14px; border-radius: 0 var(--r-btn) var(--r-btn) 0; font-size: 13px; color: var(--ink-2); }
+  .explain b { color: var(--ink-1); }
+  .result-foot { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+
+  /* ================= 看板 ================= */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .dash-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--card); }
+  .dash-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+  .ring-wrap { display: flex; justify-content: center; }
+  .weak-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .weak-item:last-child { border-bottom: none; }
+  .weak-item .rank { font-weight: 600; width: 18px; }
+  .weak-item .rank.hot { color: var(--error); }
+  .weak-item .t { flex: 1; }
+  .weak-item .badge { font-size: 12px; color: var(--error); background: var(--error-soft); padding: 2px 8px; border-radius: var(--r-tag); }
+
+  /* ================= 帮助页 ================= */
+  .help-nav { width: 220px; flex-shrink: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; }
+  .help-nav a { display: block; padding: 12px 16px; color: var(--ink-2); border-bottom: 1px solid var(--border); font-size: 14px; }
+  .help-nav a:last-child { border-bottom: none; }
+  .help-nav a:hover { background: var(--bg); color: var(--ink-1); }
+  .help-nav a.active { color: var(--primary); background: var(--primary-soft); font-weight: 500; border-left: 3px solid var(--primary); }
+  .help-main { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-card); padding: 28px; }
+  .help-sec { display: none; }
+  .help-sec.active { display: block; }
+  .help-main h2 { font-size: 22px; font-weight: 600; margin-bottom: 12px; }
+  .help-main h3 { font-size: 16px; font-weight: 500; margin: 20px 0 8px; }
+  .help-main p, .help-main li { color: var(--ink-2); }
+  .help-main ul, .help-main ol { margin: 8px 0 8px 20px; }
+  .help-main .kbd { display: inline-block; padding: 2px 8px; border: 1px solid var(--border); border-radius: var(--r-tag); background: var(--bg); font-size: 12px; color: var(--ink-2); }
+
+  /* ================= 登录页 ================= */
+  .login-shell { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: none; align-items: stretch; overflow: hidden; }
+  .login-shell.active { display: flex; }
+  .login-shell .login-pane-side {
+    flex: 1.1; position: relative; overflow: hidden;
+    background:
+      radial-gradient(1200px 600px at 20% 0%, #ECE9FB 0%, transparent 60%),
+      radial-gradient(800px 500px at 90% 100%, #F4ECFF 0%, transparent 60%),
+      linear-gradient(135deg, #FAF9FF 0%, #F2EFFF 100%);
+  }
+  .login-shell .login-pane-side .deco-grid {
+    position: absolute; inset: 0; opacity: .35;
+    background-image: linear-gradient(rgba(124,106,237,.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,237,.10) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(circle at 50% 35%, #000 0%, transparent 70%);
+  }
+  .login-shell .login-pane-side .deco-card {
+    position: absolute; left: 12%; top: 14%; width: 320px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px; box-shadow: 0 12px 30px rgba(43,42,53,.06);
+  }
+  .login-shell .login-pane-side .deco-card h4 { font-size: 14px; color: var(--ink-1); margin-bottom: 8px; }
+  .login-shell .login-pane-side .deco-card .k { font-size: 12px; color: var(--ink-3); }
+  .login-shell .login-pane-side .deco-card .k i {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    background: var(--primary-soft); color: var(--primary);
+    margin: 6px 6px 0 0; font-size: 11px;
+  }
+  .login-shell .login-pane-side .deco-mind {
+    position: absolute; right: 8%; top: 32%; width: 360px; height: 240px;
+  }
+  .login-shell .login-pane-side .deco-mind svg { width: 100%; height: 100%; }
+  .login-shell .login-pane-side .caption {
+    position: absolute; left: 12%; bottom: 14%;
+    max-width: 380px;
+  }
+  .login-shell .login-pane-side .caption h2 { font-size: 28px; font-weight: 600; color: var(--ink-1); margin-bottom: 10px; letter-spacing: -.01em; }
+  .login-shell .login-pane-side .caption p { color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+  .login-shell .login-pane-side .point-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .login-shell .login-pane-side .point-list .row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-2); }
+  .login-shell .login-pane-side .point-list .row .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--primary-soft); display: inline-flex; align-items: center; justify-content: center; color: var(--primary); }
+
+  .login-shell .login-pane-form {
+    flex: 1; background: var(--card); display: flex; align-items: center; justify-content: center;
+    padding: 32px; overflow-y: auto;
+  }
+  .login-card {
+    width: 100%; max-width: 420px;
+    padding: 32px 36px;
+  }
+  .login-card .brand-block { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .login-card .brand-block .brand-mark { width: 36px; height: 36px; border-radius: 9px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; }
+  .login-card .brand-block .name { font-size: 18px; font-weight: 600; }
+  .login-card h1 { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .login-card .sub { color: var(--ink-3); font-size: 13px; margin-bottom: 22px; }
+  .login-card .field { margin-bottom: 14px; position: relative; }
+  .login-card .field label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+  .login-card .field input { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: var(--r-btn); padding: 0 14px; font-size: 14px; outline: none; font-family: inherit; background: var(--card); color: var(--ink-1); transition: border-color .15s; }
+  .login-card .field input:focus { border-color: var(--primary); }
+  .login-card .field.has-icon input { padding-right: 44px; }
+  .login-card .field .icon-left { position: absolute; left: 14px; top: 36px; color: var(--ink-3); pointer-events: none; }
+  .login-card .field.has-icon-left input { padding-left: 40px; }
+  .login-card .field .pwd-toggle { position: absolute; right: 10px; top: 30px; border: none; background: transparent; color: var(--ink-3); cursor: pointer; padding: 4px; }
+  .login-card .field .pwd-toggle:hover { color: var(--ink-1); }
+  .login-card .field-row { display: flex; gap: 10px; }
+  .login-card .field-row .field { flex: 1; }
+  .login-card .field-row .captcha-btn {
+    flex: 0 0 auto; height: 44px; padding: 0 14px; margin-top: 22px;
+    border: 1px solid var(--border); border-radius: var(--r-btn);
+    background: var(--card); color: var(--ink-1); cursor: pointer; font-size: 13px;
+    white-space: nowrap; transition: background .15s;
+  }
+  .login-card .field-row .captcha-btn:hover { background: var(--bg); }
+  .login-card .field-row .captcha-btn:disabled { color: var(--ink-3); cursor: default; background: var(--bg); }
+
+  .auth-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+  .auth-tabs button {
+    flex: 1; padding: 12px 0; border: none; background: transparent;
+    font-size: 15px; color: var(--ink-3); cursor: pointer; position: relative;
+    font-family: inherit;
+  }
+  .auth-tabs button.on { color: var(--ink-1); font-weight: 600; }
+  .auth-tabs button.on::after {
+    content: ""; position: absolute; left: 50%; bottom: -1px; height: 2px; width: 28px; transform: translateX(-50%);
+    background: var(--primary); border-radius: 1px;
+  }
+
+  .login-card .row-tiny { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 22px; font-size: 13px; color: var(--ink-2); }
+  .login-card .row-tiny label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .login-card .row-tiny input[type=checkbox] { accent-color: var(--primary); width: 14px; height: 14px; }
+  .login-card .row-tiny a { color: var(--primary); }
+
+  .login-card .btn-block { width: 100%; }
+  .login-card .btn-lg { height: 46px; font-size: 15px; }
+
+  .login-card .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--ink-3); font-size: 12px; }
+  .login-card .divider::before, .login-card .divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .login-card .social { display: flex; gap: 10px; }
+  .login-card .social button {
+    flex: 1; height: 42px; border: 1px solid var(--border); border-radius: var(--r-btn);
+    background: var(--card); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 13px; color: var(--ink-2); transition: background .15s, border-color .15s;
+  }
+  .login-card .social button:hover { background: var(--bg); border-color: var(--ink-3); }
+
+  .login-foot { text-align: center; font-size: 13px; color: var(--ink-3); margin-top: 18px; }
+  .login-foot a { color: var(--primary); font-weight: 500; }
+  .login-terms { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 12px; }
+  .login-terms a { color: var(--ink-2); }
+
+  @media (max-width: 900px) {
+    .login-shell .login-pane-side { display: none; }
+    .login-shell .login-pane-form { flex: 1; }
+  }
+
+  /* ================= 浮动原型导航 ================= */
+  .protonav { position: fixed; right: 18px; bottom: 18px; z-index: 9998; }
+  .protonav .toggle { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(124,106,237,.32); }
+  .protonav .panel { position: absolute; right: 0; bottom: 54px; width: 240px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-modal); padding: 14px; display: none; box-shadow: 0 8px 30px rgba(43,42,53,.10); }
+  .protonav .panel.open { display: block; }
+  .protonav .panel h4 { font-size: 12px; color: var(--ink-3); margin-bottom: 10px; font-weight: 500; }
+  .protonav .panel button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: none; background: none; border-radius: var(--r-btn); color: var(--ink-1); font-size: 14px; text-align: left; }
+  .protonav .panel button:hover { background: var(--bg); }
+  .protonav .panel button .rt { margin-left: auto; font-size: 11px; color: var(--ink-3); }
+
+  /* ===== 轻提示 Toast ===== */
+  .toast {
+    position: fixed; top: 76px; left: 50%; transform: translateX(-50%);
+    background: var(--ink-1); color: #fff; font-size: 13px;
+    padding: 10px 18px; border-radius: var(--r-btn); z-index: 10001;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ===== 自定义标签 8 色 ===== */
+  .tag-c0 { background:#EFECFC; color:#7C6AED; }
+  .tag-c1 { background:#E3F2F7; color:#2A9DB8; }
+  .tag-c2 { background:#E5F4EE; color:#2E9E6B; }
+  .tag-c3 { background:#FDF0E2; color:#C7760C; }
+  .tag-c4 { background:#FCE9EE; color:#D65B7D; }
+  .tag-c5 { background:#E8ECFA; color:#4A62C4; }
+  .tag-c6 { background:#EDF0F4; color:#6B7280; }
+  .tag-c7 { background:#F1F0F6; color:#8A8896; }
+  .tag-x { margin-left:3px; cursor:pointer; font-weight:600; opacity:.55; }
+  .tag-x:hover { opacity:1; }
+  .tag-add { border:1px dashed var(--border-hover); color:var(--ink-3); cursor:pointer; background:transparent; }
+  .tag-add:hover { border-color:var(--primary); color:var(--primary); }
+
+  /* ===== 可编辑内容 ===== */
+  [contenteditable="true"] { outline: none; border-radius: 4px; transition: background .15s ease; }
+  [contenteditable="true"]:hover { background: var(--bg); }
+  [contenteditable="true"]:focus { background: var(--primary-soft); }
+
+  /* ===== 弹窗 ===== */
+  .modal-mask { position: fixed; inset:0; z-index:10002; background: rgba(43,42,53,.36); display:none; align-items:center; justify-content:center; }
+  .modal-mask.active { display:flex; }
+  .modal-card { width: 380px; max-width: calc(100vw - 32px); background: var(--card); border:1px solid var(--border); border-radius: var(--r-modal); overflow:hidden; }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); font-size:15px; font-weight:600; }
+  .modal-close { border:none; background:none; color:var(--ink-3); font-size:22px; line-height:1; cursor:pointer; }
+  .modal-close:hover { color:var(--ink-1); }
+  .modal-body { padding:18px; }
+  .modal-tip { font-size:13px; color:var(--ink-3); margin-bottom:12px; }
+  /* 学科管理 */
+  .subject-manager-list { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow:auto; padding-right:4px; }
+  .subject-manager-row {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    background:var(--bg); transition: all .15s ease;
+  }
+  .subject-manager-row:hover { border-color: var(--primary); }
+  .subject-manager-row .name { font-size:14px; font-weight:500; flex:1; }
+  .subject-manager-row .name-input {
+    flex:1; font-size:14px; font-weight:500;
+    border:1px solid var(--primary); border-radius:6px; padding:4px 8px;
+    background:var(--card); outline:none; font-family:inherit;
+  }
+  .subject-manager-row .sub-count { font-size:12px; color:var(--ink-3); }
+  .subject-manager-row .badge {
+    font-size:11px; padding:2px 8px; border-radius:10px;
+    background:var(--primary-soft); color:var(--primary);
+  }
+  .subject-manager-row.is-default .badge { background:var(--bg); color:var(--ink-3); border:1px solid var(--border); }
+  .subject-manager-row .row-btn {
+    width:28px; height:28px; border:none; background:none; color:var(--ink-2);
+    border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .subject-manager-row .row-btn:hover { background:var(--primary-soft); color:var(--primary); }
+  .subject-manager-row .row-btn.danger:hover { background:#FFE8E5; color:var(--error); }
+  .subject-manager-actions { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
+  .export-option { display:flex; align-items:center; gap:12px; width:100%; padding:12px 14px; border:1px solid var(--border); border-radius: var(--r-btn); margin-bottom:10px; background:var(--card); cursor:pointer; font-size:14px; text-align:left; transition: border-color .15s ease, background .15s ease; }
+  .export-option:hover { border-color:var(--primary); background:var(--bg); }
+  .export-option .h { font-weight:500; }
+  .export-option .s { font-size:12px; color:var(--ink-3); }
+  .export-option .ic { color: var(--primary); }
+  .dir-option { display:flex; align-items:center; gap:10px; width:100%; padding:11px 14px; border:1px solid var(--border); border-radius: var(--r-btn); margin-bottom:8px; background:var(--card); cursor:pointer; font-size:14px; text-align:left; }
+  .dir-option:hover { border-color:var(--primary); background:var(--bg); }
+
+  /* ===== 思维导图节点 ===== */
+  .mind-node { cursor: pointer; }
+  .mind-node:hover rect { stroke:#7C6AED; stroke-width:2; }
+  .mind-node text { cursor: text; }
+
+  /* 响应式 */
+  @media (max-width: 980px) {
+    .dash-grid { grid-template-columns: 1fr; }
+    .sidebar-lib, .sidebar-chat, .help-nav { display: none; }
+    .mode-cards { grid-template-columns: 1fr; }
+    .header-row { gap: 12px; }
+    .searchbox { max-width: 240px; }
+  }
+  @media (max-width: 600px) {
+    .subnav { padding: 0 12px; }
+    .page { padding: 0 16px 40px; }
+    .result-overview { grid-template-columns: 1fr; }
+    .msg { max-width: 92%; }
+  }
+
+  /* ===== 思维导图：可拖拽平移 + 滚轮缩放 ===== */
+  .mind-canvas {
+    overflow: hidden; user-select: none;
+    cursor: grab;
+  }
+  .mind-canvas.is-dragging { cursor: grabbing; }
+  .mind-canvas .mind-stage { transform-origin: 0 0; will-change: transform; }
+  #mindSvg { user-select: none; -webkit-user-drag: none; touch-action: none; cursor: inherit; }
+  #mindSvg * { user-select: none; pointer-events: auto; }
+  #mindSvg text { pointer-events: none; }
+
+  /* ===== 看板：交互 ===== */
+  .dash-ring { position: relative; width: 180px; height: 180px; margin: 0 auto; }
+  .dash-ring svg { display: block; }
+  .ring-seg {
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease, stroke-width .2s ease;
+    transform-origin: 90px 90px;
+    cursor: pointer;
+  }
+  .ring-seg.dim { opacity: .42; }
+  .ring-seg:hover, .ring-seg.lit {
+    transform: scale(1.07);
+    stroke-width: 16;
+    opacity: 1;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.12));
+  }
+  .ring-tip, .trend-tip, .graph-tip {
+    position: absolute; background: var(--ink-1); color: #fff;
+    font-size: 12px; padding: 8px 12px; border-radius: 8px;
+    pointer-events: none; opacity: 0; transition: opacity .15s ease;
+    white-space: nowrap; z-index: 10;
+    box-shadow: 0 6px 18px rgba(43,42,53,.18);
+    transform: translate(-50%, -110%);
+  }
+  .ring-tip.show, .trend-tip.show, .graph-tip.show { opacity: 1; }
+  .ring-tip::after, .trend-tip::after, .graph-tip::after {
+    content: ""; position: absolute; left: 50%; bottom: -4px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px; height: 8px; background: var(--ink-1);
+  }
+  .ring-tip b, .trend-tip b, .graph-tip b { color: #FFD580; }
+
+  .trend-pt { transition: r .15s ease; cursor: pointer; }
+  .trend-pt:hover { r: 6; }
+  .graph-node { transition: r .2s ease, filter .2s ease; cursor: pointer; }
+  .graph-node:hover { filter: drop-shadow(0 0 6px rgba(124,106,237,.5)); }
+
+  .dash-line-num {
+    position: absolute; left: 50%; top: -8px; transform: translate(-50%, -100%);
+    background: var(--primary); color: #fff; border-radius: 999px;
+    padding: 2px 8px; font-size: 11px; font-weight: 500;
+    pointer-events: none;
+  }
+
+  /* ===== 笔记详情编辑页 ===== */
+  .note-detail-wrap { background: var(--card); }
+  .detail-toolbar {
+    position: sticky; top: 0; z-index: 200;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex; align-items: center; gap: 14px;
+    backdrop-filter: saturate(140%) blur(8px);
+  }
+  .detail-toolbar .spacer { flex: 1; }
+  .detail-toolbar .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 14px;
+    border: 1px solid var(--border); border-radius: var(--r-btn);
+    background: var(--card); color: var(--ink-1);
+    font-size: 14px; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .detail-toolbar .back-btn:hover { background: var(--bg); border-color: var(--ink-3); }
+  .detail-toolbar .saved-hint {
+    font-size: 12px; color: var(--ink-3);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .detail-toolbar .saved-hint .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--success);
+  }
+  /* 在详情页时：把常规顶栏/子导航收起，避免重复 */
+  body.on-note-detail .app-header { display: none; }
+  .detail-body { max-width: 920px; margin: 0 auto; padding: 24px; }
+  .detail-title-input {
+    width: 100%; font-size: 30px; font-weight: 600; letter-spacing: -.01em;
+    border: none; outline: none; background: transparent;
+    color: var(--ink-1); padding: 8px 0 14px;
+    margin-bottom: 14px;
+  }
+  .detail-title-input:focus { background: var(--bg); border-radius: 6px; }
+  .detail-meta-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 22px; padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-3); font-size: 12px;
+  }
+  .detail-section {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--r-card); padding: 20px 22px; margin-bottom: 16px;
+  }
+  .detail-section h3 {
+    font-size: 16px; font-weight: 600; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .detail-section h3 .ic { color: var(--primary); }
+  .media-zone { display: flex; gap: 8px; flex-wrap: wrap; }
+  .media-chip {
+    position: relative;
+    background: var(--primary-soft); color: var(--primary);
+    border-radius: var(--r-btn); padding: 7px 10px 7px 12px;
+    font-size: 12px; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid transparent;
+  }
+  .media-chip.kind-image { background: #EEF6FF; color: #2A6DC4; }
+  .media-chip.kind-audio { background: #FDF0E2; color: #C7760C; }
+  .media-chip.kind-video { background: #FCE9EE; color: #D65B7D; }
+  .media-chip .name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .media-chip .x { cursor: pointer; opacity: .55; padding: 0 2px; font-weight: 600; }
+  .media-chip .x:hover { opacity: 1; color: var(--error); }
+  .media-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .kp-edit-block {
+    border: 1px solid var(--border); border-radius: var(--r-card);
+    padding: 14px 16px; margin-bottom: 10px; background: var(--card);
+    border-left: 3px solid var(--primary);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .kp-edit-block.kind-focus { border-left-color: var(--primary); }
+  .kp-edit-block.kind-difficulty { border-left-color: var(--warning); }
+  .kp-edit-block.kind-redun { border-left-color: var(--ink-3); }
+  .kp-edit-block input.kp-t {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--r-btn);
+    padding: 8px 10px; font-size: 15px; font-weight: 500; font-family: inherit;
+    outline: none; background: var(--card); color: var(--ink-1);
+  }
+  .kp-edit-block input.kp-t:focus,
+  .kp-edit-block textarea.kp-d:focus { border-color: var(--primary); }
+  .kp-edit-block textarea.kp-d {
+    width: 100%; min-height: 64px; border: 1px solid var(--border);
+    border-radius: var(--r-btn); padding: 8px 10px; font-size: 14px;
+    font-family: inherit; outline: none; resize: vertical;
+    background: var(--card); color: var(--ink-2);
+  }
+  .kp-edit-block .row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .kp-edit-block .kind-pick { display: flex; gap: 4px; font-size: 12px; }
+  .kp-edit-block .kind-pick label {
+    padding: 4px 10px; border-radius: var(--r-tag); cursor: pointer;
+    border: 1px solid var(--border); color: var(--ink-2);
+    transition: all .15s ease;
+  }
+  .kp-edit-block .kind-pick label.on {
+    background: var(--primary-soft); color: var(--primary); border-color: var(--primary);
+  }
+  .kp-edit-block .del {
+    border: none; background: none; color: var(--ink-3); cursor: pointer;
+    font-size: 18px; line-height: 1; padding: 0 6px;
+  }
+  .kp-edit-block .del:hover { color: var(--error); }
+
+  /* 多选状态下的标签颜色 */
+  .kp-edit-block .kind-pick label .chk {
+    display: inline-block; width: 12px; height: 12px; border: 1.5px solid var(--ink-3);
+    border-radius: 3px; margin-right: 6px; vertical-align: -2px; position: relative;
+  }
+  .kp-edit-block .kind-pick label input { display: none; }
+  .kp-edit-block .kind-pick label.on[data-kind="focus"] {
+    background: var(--primary-soft); color: var(--primary); border-color: var(--primary);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="focus"] .chk {
+    background: var(--primary); border-color: var(--primary);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="focus"] .chk::after {
+    content: ""; position: absolute; left: 2.5px; top: 0; width: 3px; height: 7px;
+    border: solid #fff; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="difficulty"] {
+    background: #FFF4DC; color: var(--warning); border-color: var(--warning);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="difficulty"] .chk {
+    background: var(--warning); border-color: var(--warning);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="difficulty"] .chk::after {
+    content: ""; position: absolute; left: 2.5px; top: 0; width: 3px; height: 7px;
+    border: solid #fff; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="redun"] {
+    background: #F1F0F5; color: var(--ink-2); border-color: var(--ink-3);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="redun"] .chk {
+    background: var(--ink-2); border-color: var(--ink-2);
+  }
+  .kp-edit-block .kind-pick label.on[data-kind="redun"] .chk::after {
+    content: ""; position: absolute; left: 2.5px; top: 0; width: 3px; height: 7px;
+    border: solid #fff; border-width: 0 1.8px 1.8px 0; transform: rotate(45deg);
+  }
+  .kp-edit-block .kind-tags {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: -2px;
+  }
+  .kp-edit-block .kind-tags .tag-chip {
+    font-size: 11px; padding: 2px 8px; border-radius: var(--r-tag);
+    border: 1px solid; line-height: 1.4;
+  }
+  .kp-edit-block .kind-tags .tag-chip.focus { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+  .kp-edit-block .kind-tags .tag-chip.difficulty { color: var(--warning); border-color: var(--warning); background: #FFF4DC; }
+  .kp-edit-block .kind-tags .tag-chip.redun { color: var(--ink-2); border-color: var(--ink-3); background: #F1F0F5; }
+
+  /* 当笔记视图块被多选时：border 用第一个 kind 的颜色 */
+  .kp-block.is-multi-focus .kp-border,
+  .kp-block.is-multi-focus { border-left-color: var(--primary); }
+  .kp-block.is-multi-difficulty .kp-border,
+  .kp-block.is-multi-difficulty { border-left-color: var(--warning); }
+  .kp-block.is-multi-redun .kp-border,
+  .kp-block.is-multi-redun { border-left-color: var(--ink-3); }
+  .kp-block .kp-tags { display: flex; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+  .kp-block .kp-tags .tag {
+    font-size: 11px; padding: 1px 7px; border-radius: var(--r-tag); border: 1px solid;
+    line-height: 1.5; font-weight: 500;
+  }
+  .kp-block .kp-tags .tag.focus { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+  .kp-block .kp-tags .tag.difficulty { color: var(--warning); border-color: var(--warning); background: #FFF4DC; }
+  .kp-block .kp-tags .tag.redun { color: var(--ink-2); border-color: var(--ink-3); background: #F1F0F5; }
+
+  .diff-edit-block {
+    border: 1px solid var(--border); border-radius: var(--r-card);
+    padding: 14px 16px; margin-bottom: 10px; background: var(--card);
+    border-left: 3px solid var(--warning);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .diff-edit-block input.d-t {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--r-btn);
+    padding: 8px 10px; font-size: 15px; font-weight: 500; font-family: inherit;
+    outline: none; background: var(--card); color: var(--ink-1);
+  }
+  .diff-edit-block textarea.d-d {
+    width: 100%; min-height: 64px; border: 1px solid var(--border);
+    border-radius: var(--r-btn); padding: 8px 10px; font-size: 14px;
+    font-family: inherit; outline: none; resize: vertical;
+    background: var(--card); color: var(--ink-2);
+  }
+  .diff-edit-block .row { display: flex; align-items: center; justify-content: space-between; }
+  .diff-edit-block .del { border: none; background: none; color: var(--ink-3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 6px; }
+  .diff-edit-block .del:hover { color: var(--error); }
+
+  .supp-edit-list { list-style: disc; padding-left: 22px; color: var(--ink-2); }
+  .supp-edit-list li { padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+  .supp-edit-list li input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-size: 14px; color: var(--ink-2); font-family: inherit;
+  }
+  .supp-edit-list li .x { cursor: pointer; opacity: .6; color: var(--ink-3); }
+  .supp-edit-list li .x:hover { color: var(--error); opacity: 1; }
+
+  .add-row {
+    margin-top: 4px; color: var(--primary); font-size: 13px;
+    background: none; border: 1px dashed var(--border-hover);
+    border-radius: var(--r-btn); padding: 8px 14px; cursor: pointer;
+    width: 100%;
+  }
+  .add-row:hover { border-color: var(--primary); background: var(--primary-soft); }
+
+  .embed-preview {
+    margin-top: 8px;
+    border: 1px solid var(--border); border-radius: var(--r-btn);
+    background: var(--bg); padding: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .embed-preview img, .embed-preview video { max-width: 100%; max-height: 280px; border-radius: 6px; }
+  .embed-preview audio { width: 100%; }
+
+  /* ===== 音频录入模式 ===== */
+  .audio-mode { display: none; padding: 4px 0 0; }
+  .audio-mode.active { display: block; }
+  .audio-drop {
+    border: 1.5px dashed var(--border-hover); border-radius: var(--r-modal);
+    background: var(--card); padding: 32px 24px; text-align: center; color: var(--ink-2);
+    transition: border-color .15s ease;
+  }
+  .audio-drop:hover { border-color: var(--primary); }
+  .audio-drop .ic-big { color: var(--primary); margin: 0 auto 10px; }
+  .audio-or {
+    margin: 14px 0; color: var(--ink-3); font-size: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .audio-or::before, .audio-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .rec-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 999px;
+    background: var(--primary-soft); color: var(--primary);
+    border: 1px solid transparent; cursor: pointer;
+    font-weight: 500; font-size: 14px;
+  }
+  .rec-btn:hover { background: #E7E2FB; }
+  .rec-btn.recording { background: var(--error-soft); color: var(--error); border-color: var(--error); }
+  .rec-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: currentColor;
+    animation: pulse 1.1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(.6); }
+  }
+  .audio-player {
+    margin-top: 14px; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: var(--r-card);
+    background: var(--card); display: flex; align-items: center; gap: 12px;
+  }
+  .audio-player .name { flex: 1; font-size: 14px; }
+  .audio-player audio { flex: 1; }
+
+  /* ===== AI 解析输出格式 ===== */
+  .parse-options {
+    margin-top: 18px; padding: 16px 18px;
+    border: 1px solid var(--border); border-radius: var(--r-card);
+    background: var(--card);
+  }
+  .parse-options .lbl {
+    font-size: 13px; font-weight: 500; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px; color: var(--ink-1);
+  }
+  .parse-options .lbl .ic { color: var(--primary); }
+  .parse-options .hint { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+  .parse-opts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .parse-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border: 1px solid var(--border);
+    border-radius: var(--r-btn); cursor: pointer; font-size: 14px;
+    background: var(--card); color: var(--ink-2);
+    transition: all .15s ease; user-select: none;
+  }
+  .parse-chip:hover { border-color: var(--primary); color: var(--ink-1); }
+  .parse-chip.on {
+    background: var(--primary-soft); color: var(--primary);
+    border-color: var(--primary); font-weight: 500;
+  }
+  .parse-chip .check {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1.5px solid var(--border-hover);
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card);
+  }
+  .parse-chip.on .check {
+    background: var(--primary); border-color: var(--primary);
+  }
+  .parse-chip.on .check::after {
+    content: ""; width: 9px; height: 5px;
+    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+
+  /* ===== 详情页新增知识块 ===== */
+  .add-media-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .hidden-input { display: none; }
+</style>
+</head>
+<body>
+
+<!-- 图标 Symbol 定义 -->
+<svg class="svg-defs" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" fill="none" stroke="currentColor" stroke-width="1.6"></path></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" fill="none" stroke="currentColor" stroke-width="1.6"></path></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3.5A8 8 0 1 1 21 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M12 11h4M12 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><path d="M9 16v-5M14 16V8M19 16v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M4 21v-1a6 6 0 0 1 12 0v1" fill="none" stroke="currentColor" stroke-width="1.6"></path></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 21h16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><path d="M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2H3V7zM4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M10 13h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M21 11.5L12.5 20a5 5 0 0 1-7-7L14 5a3.5 3.5 0 0 1 5 5L11 18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></path></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"></path></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 8a1 1 0 0 1 1-1h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8z" fill="none" stroke="currentColor" stroke-width="1.6"></path><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"></circle></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><circle cx="8.5" cy="9" r="1.5" fill="currentColor"></circle><path d="M21 16l-5-5-9 9" stroke="currentColor" stroke-width="1.6" fill="none"></path></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></path></symbol>
+    <symbol id="i-slides" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M10 21h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"></path></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M16 10l5-3v10l-5-3" stroke="currentColor" stroke-width="1.6" fill="none"></path></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7M12 17h.01" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></path></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor"></path><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" fill="currentColor"></path></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"></path><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 6.1A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-3.2 3.8M6.2 6.2C3.4 8 2 12 2 12s3.5 7 10 7c1.6 0 3-.3 4.2-.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M3 7l9 6 9-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-wechat" viewBox="0 0 24 24"><path d="M9 4C5 4 2 6.7 2 10c0 1.7.8 3.3 2 4.4L3 17l3-1.5c.9.3 1.9.5 3 .5h.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><path d="M22 16c0-2.8-2.7-5-6-5s-6 2.2-6 5 2.7 5 6 5c.8 0 1.6-.1 2.3-.3L21 22l-.7-2c1.1-.9 1.7-2 1.7-4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="6" cy="9.5" r=".7" fill="currentColor"></circle><circle cx="9.5" cy="9.5" r=".7" fill="currentColor"></circle><circle cx="14.5" cy="15" r=".7" fill="currentColor"></circle><circle cx="17" cy="15" r=".7" fill="currentColor"></circle></symbol>
+    <symbol id="i-google" viewBox="0 0 24 24"><path d="M21.5 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4c-.2 1.3-1 2.4-2 3.1v2.6h3.3c1.9-1.8 3-4.4 3-7.5z" fill="#4285F4"></path><path d="M12 22c2.7 0 5-.9 6.6-2.4l-3.3-2.6c-.9.6-2 1-3.3 1-2.6 0-4.7-1.7-5.5-4.1H3.1v2.6C4.7 19.7 8.1 22 12 22z" fill="#34A853"></path><path d="M6.5 13.9c-.2-.6-.3-1.2-.3-1.9s.1-1.3.3-1.9V7.5H3.1A10 10 0 0 0 2 12c0 1.6.4 3.1 1.1 4.5l3.4-2.6z" fill="#FBBC05"></path><path d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9C17 2.9 14.7 2 12 2 8.1 2 4.7 4.3 3.1 7.5l3.4 2.6c.8-2.4 2.9-4.2 5.5-4.2z" fill="#EA4335"></path></symbol>
+    <symbol id="i-qq" viewBox="0 0 24 24"><path d="M16 4c-1.5-.5-3-.5-4 0-1-.5-2.5-.5-4 0C5 5.5 4 9 5 12c-1 2-1 4 1 5.5 1 .8 2 1 3 1s2-.6 3-1.5c1 .9 2 1.5 3 1.5s2-.2 3-1c2-1.5 2-3.5 1-5.5 1-3 0-6.5-3-8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path><circle cx="9.5" cy="10" r=".8" fill="currentColor"></circle><circle cx="14.5" cy="10" r=".8" fill="currentColor"></circle></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.4L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.4L3 16M3 21v-5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+  </defs>
+</svg>
+
+<!-- 登录 / 注册页（全屏双栏覆盖） -->
+<div class="login-shell" id="loginShell">
+  <div class="login-pane-side">
+    <div class="deco-grid"></div>
+
+    <div class="deco-card">
+      <h4>📒 高数·极限的定义</h4>
+      <div class="k">
+        <i>重点</i><i>难点</i><i style="background:#FFF4DC;color:var(--warning);">考试常考</i>
+      </div>
+      <p style="margin-top:10px;color:var(--ink-2);font-size:13px;line-height:1.55;">AI 已自动解析 5 段录音 + 12 页 PPT…</p>
+    </div>
+
+    <div class="deco-mind">
+      <svg viewBox="0 0 360 240" preserveAspectRatio="xMidYMid meet">
+        <line x1="180" y1="120" x2="100" y2="60" stroke="#D8D2F2" stroke-width="1.4"></line>
+        <line x1="180" y1="120" x2="100" y2="180" stroke="#D8D2F2" stroke-width="1.4"></line>
+        <line x1="180" y1="120" x2="260" y2="60" stroke="#D8D2F2" stroke-width="1.4"></line>
+        <line x1="180" y1="120" x2="260" y2="180" stroke="#D8D2F2" stroke-width="1.4"></line>
+        <line x1="100" y1="60" x2="50" y2="40" stroke="#E8E6F2" stroke-width="1.4"></line>
+        <line x1="100" y1="60" x2="260" y2="60" stroke="#D8D2F2" stroke-width="1.4"></line>
+        <line x1="260" y1="60" x2="320" y2="40" stroke="#E8E6F2" stroke-width="1.4"></line>
+        <line x1="100" y1="180" x2="50" y2="220" stroke="#E8E6F2" stroke-width="1.4"></line>
+        <circle cx="180" cy="120" r="9" fill="#7C6AED"></circle>
+        <text x="180" y="143" text-anchor="middle" font-size="11" fill="#6B6A78">函数与极限</text>
+        <circle cx="100" cy="60" r="7" fill="#7C6AED"></circle>
+        <text x="100" y="48" text-anchor="middle" font-size="11" fill="#6B6A78">导数</text>
+        <circle cx="100" cy="180" r="7" fill="#7C6AED"></circle>
+        <text x="100" y="200" text-anchor="middle" font-size="11" fill="#6B6A78">积分</text>
+        <circle cx="260" cy="60" r="7" fill="#7C6AED"></circle>
+        <text x="260" y="48" text-anchor="middle" font-size="11" fill="#6B6A78">极限</text>
+        <circle cx="260" cy="180" r="7" fill="#7C6AED"></circle>
+        <text x="260" y="200" text-anchor="middle" font-size="11" fill="#6B6A78">中值定理</text>
+        <circle cx="50" cy="40" r="5" fill="#A09FB0"></circle>
+        <circle cx="50" cy="220" r="5" fill="#A09FB0"></circle>
+        <circle cx="320" cy="40" r="5" fill="#A09FB0"></circle>
+      </svg>
+    </div>
+
+    <div class="caption">
+      <h2>把每一节课，<br>变成可检索的知识资产。</h2>
+      <p>Clarify 是为大学生与自学者打造的 AI 笔记整理师，上传录音、笔记或拍课件，自动帮你提炼重点与难点，并生成可复习的结构化卡片和思维导图。</p>
+      <div class="point-list">
+        <div class="row"><span class="dot"><svg class="ic" style="width:12px;height:12px;"><use href="#i-spark"/></svg></span>AI 多模态解析：音频 / 图片 / PDF / 文本 都能转笔记</div>
+        <div class="row"><span class="dot"><svg class="ic" style="width:12px;height:12px;"><use href="#i-book"/></svg></span>结构化整理：重点 / 难点 / 段子 分层呈现</div>
+        <div class="row"><span class="dot"><svg class="ic" style="width:12px;height:12px;"><use href="#i-chart"/></svg></span>数据看板：知识掌握度一目了然</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-pane-form">
+    <div class="login-card">
+      <div class="brand-block">
+        <span class="brand-mark"><svg class="ic" style="width:18px;height:18px;"><use href="#i-spark"></use></svg></span>
+        <span class="name">Clarify</span>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="authTabLogin" class="on" onclick="setAuthMode('login')">登录</button>
+        <button id="authTabRegister" onclick="setAuthMode('register')">注册</button>
+      </div>
+
+      <!-- 登录表单 -->
+      <div id="authFormLogin">
+        <h1>欢迎回来 👋</h1>
+        <p class="sub">登录后继续整理你的学习笔记与思维导图。</p>
+
+        <div class="field has-icon-left">
+          <label for="loginEmail">邮箱</label>
+          <span class="icon-left"><svg class="ic"><use href="#i-mail"/></svg></span>
+          <input id="loginEmail" type="email" placeholder="you@example.com" value="student@clarify.ai">
+        </div>
+
+        <div class="field has-icon">
+          <label for="loginPwd">密码</label>
+          <input id="loginPwd" type="password" placeholder="••••••••" value="123456">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('loginPwd', this)" aria-label="显示密码">
+            <svg class="ic"><use href="#i-eye"/></svg>
+          </button>
+        </div>
+
+        <div class="row-tiny">
+          <label><input type="checkbox" checked> 记住我</label>
+          <a href="javascript:void(0)" onclick="alert('已发送重置链接到该邮箱（原型示意）')">忘记密码？</a>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" onclick="doLogin()">登录</button>
+
+        <div class="divider">其他登录方式</div>
+        <div class="social">
+          <button onclick="alert('正在跳转微信扫码…（原型示意）')"><svg class="ic" style="width:18px;height:18px;color:#3CC28A;"><use href="#i-wechat"/></svg>微信</button>
+          <button onclick="alert('正在跳转 Google 登录…（原型示意）')"><svg class="ic" style="width:18px;height:18px;"><use href="#i-google"/></svg>Google</button>
+          <button onclick="alert('正在跳转 QQ 登录…（原型示意）')"><svg class="ic" style="width:18px;height:18px;color:#1DA1F2;"><use href="#i-qq"/></svg>QQ</button>
+        </div>
+
+        <p class="login-foot">还没有账号？<a href="javascript:void(0)" onclick="setAuthMode('register')">立即注册</a></p>
+        <p class="login-terms">登录即代表同意 <a href="javascript:void(0)">《用户协议》</a> 与 <a href="javascript:void(0)">《隐私政策》</a></p>
+      </div>
+
+      <!-- 注册表单 -->
+      <div id="authFormRegister" style="display:none;">
+        <h1>开启你的智能笔记 ✨</h1>
+        <p class="sub">30 秒创建账号，立即体验 AI 整理课堂录音与课件。</p>
+
+        <div class="field has-icon-left">
+          <label for="regNick">昵称</label>
+          <span class="icon-left"><svg class="ic"><use href="#i-user"/></svg></span>
+          <input id="regNick" type="text" placeholder="例如：李同学">
+        </div>
+
+        <div class="field has-icon-left">
+          <label for="regEmail">邮箱</label>
+          <span class="icon-left"><svg class="ic"><use href="#i-mail"/></svg></span>
+          <input id="regEmail" type="email" placeholder="you@example.com">
+        </div>
+
+        <div class="field has-icon">
+          <label for="regPwd">设置密码</label>
+          <input id="regPwd" type="password" placeholder="至少 8 位，含字母与数字">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd', this)">
+            <svg class="ic"><use href="#i-eye"/></svg>
+          </button>
+        </div>
+
+        <div class="field has-icon">
+          <label for="regPwd2">确认密码</label>
+          <input id="regPwd2" type="password" placeholder="再次输入密码">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('regPwd2', this)">
+            <svg class="ic"><use href="#i-eye"/></svg>
+          </button>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="regCaptcha">验证码</label>
+            <input id="regCaptcha" type="text" placeholder="6 位数字">
+          </div>
+          <button class="captcha-btn" id="regCaptchaBtn" onclick="sendCaptcha()">获取验证码</button>
+        </div>
+
+        <div class="row-tiny">
+          <label><input type="checkbox" id="regAgree"> 我已阅读并同意 <a href="javascript:void(0)">《用户协议》</a> 与 <a href="javascript:void(0)">《隐私政策》</a></label>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" onclick="doRegister()">创建账号</button>
+
+        <div class="divider">使用社交账号直接注册</div>
+        <div class="social">
+          <button onclick="alert('正在跳转微信扫码…')"><svg class="ic" style="width:18px;height:18px;color:#3CC28A;"><use href="#i-wechat"/></svg>微信</button>
+          <button onclick="alert('正在跳转 Google 登录…')"><svg class="ic" style="width:18px;height:18px;"><use href="#i-google"/></svg>Google</button>
+          <button onclick="alert('正在跳转 QQ 登录…')"><svg class="ic" style="width:18px;height:18px;color:#1DA1F2;"><use href="#i-qq"/></svg>QQ</button>
+        </div>
+
+        <p class="login-foot">已有账号？<a href="javascript:void(0)" onclick="setAuthMode('login')">直接登录</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 顶栏 -->
+<header class="app-header" id="appHeader">
+  <div class="header-row">
+    <div class="brand">
+      <span class="brand-mark"><svg class="ic" style="width:18px;height:18px;"><use href="#i-spark"></use></svg></span>
+      Clarify
+    </div>
+    <div class="searchbox">
+      <svg class="ic"><use href="#i-search"></use></svg>
+      <input type="text" placeholder="搜索笔记、知识点、学科..." onfocus="navigate('page-library')">
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="navigate('page-ingest')">
+        <svg class="ic" style="width:14px;height:14px;"><use href="#i-plus"></use></svg> 新建笔记
+      </button>
+      <div class="avatar" title="用户">李</div>
+    </div>
+  </div>
+  <nav class="subnav" id="subnav">
+    <a href="javascript:void(0)" data-nav="page-library" class="active"><svg class="ic" style="margin-right:4px;"><use href="#i-book"></use></svg>知识库</a>
+    <a href="javascript:void(0)" data-nav="page-chat"><svg class="ic" style="margin-right:4px;"><use href="#i-chat"></use></svg>AI 对话</a>
+    <a href="javascript:void(0)" data-nav="page-review"><svg class="ic" style="margin-right:4px;"><use href="#i-clipboard"></use></svg>复习中心</a>
+    <a href="javascript:void(0)" data-nav="page-dashboard"><svg class="ic" style="margin-right:4px;"><use href="#i-chart"></use></svg>数据看板</a>
+    <a href="javascript:void(0)" data-nav="page-help"><svg class="ic" style="margin-right:4px;"><use href="#i-help"></use></svg>帮助中心</a>
+  </nav>
+</header>
+
+<!-- ============ 知识库主页 ============ -->
+<section class="page active" id="page-library">
+  <div class="two-col">
+    <aside class="sidebar-lib">
+      <button class="btn btn-primary btn-block" onclick="navigate('page-ingest')">
+        <svg class="ic" style="width:14px;height:14px;"><use href="#i-plus"></use></svg> 新建笔记
+        <svg class="ic" style="width:12px;height:12px;"><use href="#i-chevron"></use></svg>
+      </button>
+      <div class="tree">
+        <div class="tree-title">目录</div>
+        <div class="tree-item active" id="tree-all" data-folder="all" onclick="selectFolder('all')"><svg class="ic"><use href="#i-folder"></use></svg>我的笔记 <span class="count">12</span></div>
+        <div class="tree-sub" id="treeSub">
+          <div class="tree-item" id="tree-math" data-folder="math" onclick="selectFolder('math')"><svg class="ic" style="width:14px;height:14px;"><use href="#i-folder"></use></svg>数学 <span class="count">4</span></div>
+          <div class="tree-item" id="tree-physics" data-folder="physics" onclick="selectFolder('physics')"><svg class="ic" style="width:14px;height:14px;"><use href="#i-folder"></use></svg>物理 <span class="count">3</span></div>
+          <div class="tree-item" id="tree-english" data-folder="english" onclick="selectFolder('english')"><svg class="ic" style="width:14px;height:14px;"><use href="#i-folder"></use></svg>英语 <span class="count">5</span></div>
+        </div>
+      </div>
+      <div class="note-list">
+        <div class="list-title" id="noteListTitle" style="padding:12px;">我的笔记 · 全部</div>
+        <div id="noteList" style="padding:0 8px 8px;"></div>
+      </div>
+      <div class="user-info">
+        <div class="avatar">李</div>
+        <div><div class="name">李同学</div><div class="mail">student@clarify.ai</div></div>
+      </div>
+    </aside>
+
+    <div class="lib-main">
+      <div class="crumb" id="crumb">我的笔记 / 数学 / <b>函数与极限</b></div>
+      <div class="toolbar">
+        <div class="seg">
+          <button class="active" id="segNote" onclick="switchView('note')">笔记视图</button>
+          <button id="segMap" onclick="switchView('map')">思维导图</button>
+        </div>
+        <select class="select" id="libSubject" onchange="onSubjectChange(this)">
+          <option>全部学科</option>
+          <option>数学</option><option>物理</option><option>英语</option>
+          <option>化学</option><option>计算机</option><option>历史</option>
+          <option value="＋ 自定义学科…">＋ 自定义学科…</option>
+        </select>
+        <button class="icon-btn" onclick="openSubjectManager()" title="学科管理：重命名 / 删除 / 新增" aria-label="学科管理">
+          <svg class="ic" style="width:15px;height:15px;"><use href="#i-settings"></use></svg>
+        </button>
+        <select class="select" id="libSub" onchange="onSubChange(this)"><option>全部细分</option></select>
+        <select class="select" id="libType" onchange="filterLibrary()">
+          <option>全部类型</option>
+          <option>重点</option><option>难点</option><option>段子</option>
+        </select>
+        <span style="flex:1"></span>
+        <button class="btn btn-ghost btn-sm" onclick="openExport()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-download"></use></svg>导出</button>
+        <button class="btn btn-ghost btn-sm" onclick="openArchive()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-archive"></use></svg>归档</button>
+      </div>
+
+      <!-- 笔记视图 -->
+      <div class="note-view" id="noteView">
+        <div class="card card-pad">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input class="note-title" id="noteTitle" value="函数与极限" oninput="currentNote().title = this.value" style="flex:1;">
+            <button class="btn btn-primary btn-sm" onclick="openNoteDetail(currentNoteId)" style="margin-bottom:6px;">
+              <svg class="ic" style="width:14px;height:14px;"><use href="#i-spark"></use></svg> 在详情页编辑
+            </button>
+          </div>
+          <div class="note-meta" id="noteMeta"></div>
+          <div id="kpList"></div>
+          <div class="block-title">难点标注</div>
+          <div id="diffList"></div>
+          <div class="block-title">补充材料</div>
+          <ul class="supp-list" id="suppList"></ul>
+          <div class="edit-bar" id="editBar">
+            <span class="dot"></span> <span id="saveState">已自动保存</span>
+            <span style="flex:1"></span>
+            <a href="javascript:void(0)" onclick="toast('已打开版本历史（原型示意）')">查看版本历史</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 思维导图视图 -->
+      <div class="mind-view" id="mindView">
+        <div class="toolbar" style="margin-top:0;gap:10px;align-items:center;">
+          <div style="font-size:13px;color:var(--ink-3);display:flex;flex-direction:column;line-height:1.45;">
+            <span><b style="color:var(--ink-2);">空白处拖拽</b>平移 · <b style="color:var(--ink-2);">滚轮</b>缩放（以鼠标位置为中心）</span>
+            <span><b style="color:var(--ink-2);">双击节点</b>修改文字 · <b style="color:var(--ink-2);">Shift+滚轮</b>水平/垂直平移</span>
+          </div>
+          <span style="flex:1"></span>
+          <button class="btn btn-ghost btn-sm" onclick="addMindNode()">＋ 子节点</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeMindNode()">删除节点</button>
+          <div class="mind-zoom">
+            <button class="btn btn-ghost btn-sm" onclick="mindZoom(-0.15)" title="缩小">−</button>
+            <button class="btn btn-ghost btn-sm" id="mindZoomPercent" onclick="mindReset()" title="重置视图">100%</button>
+            <button class="btn btn-ghost btn-sm" onclick="mindZoom(0.15)" title="放大">+</button>
+            <button class="btn btn-ghost btn-sm" onclick="mindFit()" title="适配窗口"><svg class="ic" style="width:13px;height:13px;"><use href="#i-maximize"></use></svg></button>
+          </div>
+        </div>
+        <div class="mind-canvas" id="mindCanvas" style="overflow:hidden;">
+          <svg id="mindSvg" viewBox="0 0 620 420" width="100%" style="max-width:620px;">
+            <g id="mindStage">
+            <g id="mindEdges">
+              <line x1="310" y1="210" x2="180" y2="120" stroke="#E8E6F2"></line>
+              <line x1="310" y1="210" x2="180" y2="300" stroke="#E8E6F2"></line>
+              <line x1="310" y1="210" x2="440" y2="120" stroke="#E8E6F2"></line>
+              <line x1="310" y1="210" x2="440" y2="300" stroke="#E8E6F2"></line>
+              <line x1="180" y1="120" x2="80" y2="80" stroke="#E8E6F2"></line>
+              <line x1="180" y1="120" x2="80" y2="160" stroke="#E8E6F2"></line>
+            </g>
+            <g id="mindNodes">
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="250" y="190" width="120" height="40" rx="8" fill="#7C6AED"></rect><text x="310" y="215" text-anchor="middle" fill="#fff" font-size="14" font-weight="600">函数与极限</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="120" y="100" width="120" height="40" rx="8" fill="#fff" stroke="#7C6AED"></rect><text x="180" y="125" text-anchor="middle" fill="#2B2A35" font-size="13">函数的定义</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="120" y="280" width="120" height="40" rx="8" fill="#fff" stroke="#F5A524"></rect><text x="180" y="305" text-anchor="middle" fill="#2B2A35" font-size="13">极限计算技巧</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="420" y="100" width="120" height="40" rx="8" fill="#fff" stroke="#7C6AED"></rect><text x="480" y="125" text-anchor="middle" fill="#2B2A35" font-size="13">两个重要极限</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="420" y="280" width="120" height="40" rx="8" fill="#fff" stroke="#E8E6F2"></rect><text x="480" y="305" text-anchor="middle" fill="#6B6A78" font-size="13">补充材料</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="30" y="60" width="100" height="36" rx="8" fill="#fff" stroke="#E8E6F2"></rect><text x="80" y="83" text-anchor="middle" fill="#6B6A78" font-size="12">定义域</text></g>
+              <g class="mind-node" ondblclick="editMindNode(this)"><rect x="30" y="140" width="100" height="36" rx="8" fill="#fff" stroke="#E8E6F2"></rect><text x="80" y="163" text-anchor="middle" fill="#6B6A78" font-size="12">对应法则</text></g>
+            </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 笔记详情编辑页 ============ -->
+<section class="page" id="page-note-detail">
+  <div class="detail-toolbar">
+    <button class="back-btn" onclick="backToLibrary()" aria-label="返回知识库">
+      <svg class="ic" style="width:14px;height:14px;"><use href="#i-arrow-left"></use></svg>
+      <span>返回知识库</span>
+    </button>
+    <span class="spacer"></span>
+    <span id="detailSavedHint" class="saved-hint"><span class="dot"></span>已自动保存</span>
+    <button class="btn btn-soft btn-sm" onclick="openExport()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-download"></use></svg>导出</button>
+    <button class="btn btn-primary btn-sm" onclick="saveNoteDetail()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-check"></use></svg>保存并返回</button>
+  </div>
+  <div class="detail-body">
+    <input class="detail-title-input" id="detailTitle" placeholder="笔记标题">
+    <div class="detail-meta-row" id="detailMetaRow"></div>
+
+    <div class="detail-section">
+      <h3><svg class="ic" style="width:16px;height:16px;"><use href="#i-paperclip"></use></svg>附件与媒体</h3>
+      <div style="font-size:13px;color:var(--ink-2);margin-bottom:10px;">在此插入课堂录音、参考图片或讲解视频，所有内容都跟随笔记保存。</div>
+      <div class="media-zone" id="detailMediaZone"></div>
+      <div class="media-toolbar">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('mediaImageInput').click()">
+          <svg class="ic"><use href="#i-image"></use></svg>插入图片
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('mediaAudioInput').click()">
+          <svg class="ic"><use href="#i-mic"></use></svg>插入音频
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('mediaVideoInput').click()">
+          <svg class="ic"><use href="#i-video"></use></svg>插入视频
+        </button>
+        <input type="file" id="mediaImageInput" class="hidden-input" accept="image/*" onchange="onMediaImage(this)">
+        <input type="file" id="mediaAudioInput" class="hidden-input" accept="audio/*" onchange="onMediaAudio(this)">
+        <input type="file" id="mediaVideoInput" class="hidden-input" accept="video/*" onchange="onMediaVideo(this)">
+      </div>
+      <div id="detailMediaPreview" class="embed-preview" style="display:none;"></div>
+    </div>
+
+    <div class="detail-section">
+      <h3><svg class="ic" style="width:16px;height:16px;"><use href="#i-spark"></use></svg>重点知识点</h3>
+      <div id="detailKps"></div>
+      <button class="add-row" onclick="addDetailKp()">+ 添加知识点</button>
+    </div>
+
+    <div class="detail-section">
+      <h3 style="color:var(--warning);"><svg class="ic" style="width:16px;height:16px;"><use href="#i-help"></use></svg>难点标注</h3>
+      <div id="detailDiffs"></div>
+      <button class="add-row" onclick="addDetailDiff()">+ 添加难点</button>
+    </div>
+
+    <div class="detail-section">
+      <h3><svg class="ic" style="width:16px;height:16px;"><use href="#i-text"></use></svg>补充材料</h3>
+      <ul class="supp-edit-list" id="detailSupps"></ul>
+      <button class="add-row" onclick="addDetailSupp()">+ 添加补充条目</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 多模态录入页 ============ -->
+<section class="page" id="page-ingest">
+  <div class="ingest-max">
+    <div class="page-hd"><h1>新建录入</h1></div>
+    <div class="tabs" id="ingestTabs">
+      <button class="tab active" data-mode="camera" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-camera"></use></svg>拍照</button>
+      <button class="tab" data-mode="screenshot" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-image"></use></svg>截图</button>
+      <button class="tab" data-mode="text" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-text"></use></svg>文本</button>
+      <button class="tab" data-mode="audio" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-mic"></use></svg>音频</button>
+      <button class="tab" data-mode="ppt" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-slides"></use></svg>PPT</button>
+      <button class="tab" data-mode="pdf" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-file"></use></svg>PDF</button>
+      <button class="tab" data-mode="video" onclick="setIngestMode(this)"><svg class="ic" style="margin-right:5px;"><use href="#i-video"></use></svg>视频</button>
+    </div>
+
+    <div class="upload-zone" id="uploadZone" onclick="queueAdd()">
+      <svg class="ic ic-big" style="width:40px;height:40px;"><use href="#i-upload"></use></svg>
+      <div style="font-size:15px;font-weight:500;color:var(--ink-1);">点击上传或拖拽文件到此处</div>
+      <div class="hint">支持 JPG / PNG / PPTX / PDF / MP4，单个文件不超过 200MB</div>
+    </div>
+
+    <div class="text-input" id="textInput">
+      <textarea class="textarea" placeholder="粘贴或输入课堂内容，AI 将自动提炼重点、难点与考试重点..."></textarea>
+      <div style="font-size:12px;color:var(--ink-3);margin-top:6px;">支持 <span class="kbd">Ctrl+V</span> 快捷粘贴截图 / 文本</div>
+    </div>
+
+    <div class="audio-mode" id="audioMode">
+      <div class="audio-drop" onclick="document.getElementById('audioFileInput').click()">
+        <svg class="ic ic-big" style="width:36px;height:36px;"><use href="#i-mic"></use></svg>
+        <div style="font-size:15px;font-weight:500;color:var(--ink-1);margin-bottom:6px;">上传音频文件</div>
+        <div class="hint">支持 MP3 / WAV / M4A，单个文件不超过 200MB</div>
+        <input type="file" id="audioFileInput" class="hidden-input" accept="audio/*" onchange="onAudioFile(this)">
+      </div>
+      <div class="audio-or">或</div>
+      <div style="text-align:center;">
+        <button class="rec-btn" id="recBtn" onclick="toggleRecord()">
+          <svg class="ic" style="width:16px;height:16px;"><use href="#i-mic"></use></svg>
+          <span id="recBtnText">开始录音</span>
+        </button>
+        <div id="recStatus" style="font-size:12px;color:var(--ink-3);margin-top:8px;display:none;">
+          <span class="rec-dot"></span> 录音中 <span id="recTime">00:00</span>
+        </div>
+      </div>
+      <div class="audio-player" id="audioPlayer" style="display:none;">
+        <svg class="ic" style="color:var(--primary);width:18px;height:18px;"><use href="#i-mic"></use></svg>
+        <span class="name" id="audioName">audio.mp3</span>
+        <audio id="audioPreview" controls></audio>
+      </div>
+    </div>
+
+    <div class="parse-options" id="parseOptions">
+      <div class="lbl"><svg class="ic" style="width:16px;height:16px;"><use href="#i-spark"></use></svg>AI 解析输出格式（可多选）</div>
+      <div class="parse-opts">
+        <div class="parse-chip on" data-format="note" onclick="toggleParseChip(this)">
+          <span class="check"></span>
+          <svg class="ic" style="width:14px;height:14px;"><use href="#i-book"></use></svg>笔记
+        </div>
+        <div class="parse-chip" data-format="mindmap" onclick="toggleParseChip(this)">
+          <span class="check"></span>
+          <svg class="ic" style="width:14px;height:14px;"><use href="#i-clipboard"></use></svg>思维导图
+        </div>
+        <div class="parse-chip" data-format="transcript" onclick="toggleParseChip(this)">
+          <span class="check"></span>
+          <svg class="ic" style="width:14px;height:14px;"><use href="#i-text"></use></svg>音视频转文字
+        </div>
+      </div>
+      <div class="hint" id="parseHint">已选择 笔记，解析后将生成结构化笔记</div>
+    </div>
+
+    <div class="queue-title">上传队列</div>
+    <div id="uploadQueue"></div>
+
+    <div class="ingest-foot">
+      <button class="btn btn-primary btn-lg" id="parseBtn" onclick="parseAll()">
+        <svg class="ic" style="width:14px;height:14px;"><use href="#i-spark"></use></svg> <span id="parseBtnText">开始解析</span>
+      </button>
+      <button class="btn btn-soft btn-lg" id="gotoNoteBtn" style="display:none;" onclick="gotoNewNote()">
+        跳转到笔记 <svg class="ic" style="width:14px;height:14px;"><use href="#i-chevron"></use></svg>
+      </button>
+      <span style="font-size:12px;color:var(--ink-3);">AI 将自动推断学科，识别失败时可手动选择</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AI 对话页 ============ -->
+<section class="page" id="page-chat">
+  <div class="two-col">
+    <aside class="sidebar-chat">
+      <button class="btn btn-primary" onclick="newChat()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-plus"></use></svg> 新建对话</button>
+      <div class="chat-hist" id="chatHist">
+        <div class="chat-item active" data-chat="c1" onclick="openChat(this)"><div class="t">极限计算技巧答疑</div><div class="m">10 分钟前</div></div>
+        <div class="chat-item" data-chat="c2" onclick="openChat(this)"><div class="t">物理力学公式整理</div><div class="m">昨天</div></div>
+        <div class="chat-item" data-chat="c3" onclick="openChat(this)"><div class="t">英语定语从句讲解</div><div class="m">3 天前</div></div>
+        <div class="chat-item" data-chat="c4" onclick="openChat(this)"><div class="t">考研政治唯物论复盘</div><div class="m">上周</div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearHistory()">清空历史</button>
+    </aside>
+
+    <div class="chat-main">
+      <div class="chat-head">
+        <div class="t" id="chatTitle">极限计算技巧答疑</div>
+        <span style="flex:1"></span>
+        <button class="btn btn-soft btn-sm" onclick="toast('已整理为笔记，已归档到知识库'); navigate('page-library')"><svg class="ic" style="width:14px;height:14px;"><use href="#i-book"></use></svg>整理为笔记</button>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="msg user"><div class="bubble">极限计算有哪些常用方法？</div></div>
+        <div class="msg ai">
+          <div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"></use></svg></div>
+          <div class="bubble">
+            极限计算常用的方法主要有以下几种：
+            <ol>
+              <li><b>等价无穷小替换</b>：sinx~x、tanx~x、1-cosx~x²/2 等；</li>
+              <li><b>洛必达法则</b>：适用于 0/0、∞/∞ 型；</li>
+              <li><b>夹逼准则</b>：处理复杂和式或分段函数；</li>
+              <li><b>两个重要极限</b>：sinx/x 与 (1+1/x)^x。<span class="cursor"></span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <button class="btn btn-ghost btn-sm" title="附件"><svg class="ic"><use href="#i-paperclip"></use></svg></button>
+        <textarea id="chatText" placeholder="输入问题，Ctrl+Enter 快捷发送..."></textarea>
+        <button class="btn btn-primary" onclick="sendMessage()"><svg class="ic" style="width:14px;height:14px;"><use href="#i-send"></use></svg> 发送</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 复习中心页 ============ -->
+<section class="page" id="page-review">
+  <div class="review-max" id="reviewStageMode">
+    <div class="page-hd"><h1>复习中心</h1></div>
+    <div class="mode-cards">
+      <div class="mode-card selected" onclick="selectMode(this)">
+        <svg class="ic ic-big" style="width:28px;height:28px;"><use href="#i-clipboard"></use></svg>
+        <div class="t">每日复习</div>
+        <div class="d">每天 10~15 分钟，滚动回顾薄弱知识点</div>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <svg class="ic ic-big" style="width:28px;height:28px;"><use href="#i-chart"></use></svg>
+        <div class="t">周度复盘</div>
+        <div class="d">本周知识点系统梳理，变体题巩固</div>
+      </div>
+      <div class="mode-card" onclick="selectMode(this)">
+        <svg class="ic ic-big" style="width:28px;height:28px;"><use href="#i-user"></use></svg>
+        <div class="t">考前突击</div>
+        <div class="d">按考试日期倒推计划，高频考点优先</div>
+      </div>
+    </div>
+    <div class="review-foot">
+      <select class="select" id="reviewSubject" onchange="onSubjectChange(this,'review')" style="height:42px;">
+        <option>数学</option>
+      </select>
+      <select class="select" id="reviewSub" onchange="onSubChange(this)" style="height:42px;">
+        <option>全部细分</option>
+      </select>
+      <button class="btn btn-primary btn-lg" onclick="goQuiz()">开始复习</button>
+    </div>
+  </div>
+
+  <div class="review-max" id="reviewStageQuiz" style="display:none;">
+    <div class="page-hd">
+      <h1 style="font-size:20px;">每日复习 · 高等数学</h1>
+      <span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" onclick="goMode()">退出</button>
+    </div>
+    <div class="progress-top">
+      <span style="font-size:13px;color:var(--ink-2);">第 <b>1</b> / 5 题</span>
+      <div class="progress-bar"><i style="width:20%;"></i></div>
+    </div>
+    <div class="question-card">
+      <div class="q-tag">变体题 · 考查知识点：两个重要极限</div>
+      <div class="q-title">求极限 lim(x→0) sin(3x) / x 的值。</div>
+      <div class="option selected" onclick="pickOption(this)"><span class="key">A</span>1</div>
+      <div class="option" onclick="pickOption(this)"><span class="key">B</span>2</div>
+      <div class="option" onclick="pickOption(this)"><span class="key">C</span>3</div>
+      <div class="option" onclick="pickOption(this)"><span class="key">D</span>1/3</div>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn btn-ghost" onclick="alert('上一题（原型示意）')">上一题</button>
+      <button class="btn btn-primary" onclick="goResult()">提交交卷</button>
+      <button class="btn btn-ghost" onclick="alert('下一题（原型示意）')">下一题</button>
+    </div>
+  </div>
+
+  <div class="review-max" id="reviewStageResult" style="display:none;">
+    <div class="page-hd">
+      <h1 style="font-size:20px;">每日复习 · 批改结果</h1>
+      <span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm" onclick="goMode()">返回</button>
+    </div>
+    <div class="result-overview">
+      <div class="stat-card"><div class="num" style="color:var(--primary);">80%</div><div class="lbl">正确率</div></div>
+      <div class="stat-card good"><div class="num">良好</div><div class="lbl">掌握度评级</div></div>
+      <div class="stat-card warn"><div class="num">2</div><div class="lbl">薄弱知识点</div></div>
+    </div>
+
+    <div class="answer-card correct">
+      <div class="answer-head"><span class="ok"><svg class="ic"><use href="#i-check"></use></svg></span>第 1 题 · 答对</div>
+      <div class="answer-body">
+        <div class="answer-row"><b>求极限 lim(x→0) sinx/x</b></div>
+        <div class="answer-row"><span class="k">你的答案：</span>1</div>
+        <div class="explain"><b>解析：</b>根据第一个重要极限公式，lim(x→0) sinx/x = 1，答案正确。</div>
+      </div>
+    </div>
+
+    <div class="answer-card wrong">
+      <div class="answer-head"><span class="bad"><svg class="ic"><use href="#i-x"></use></svg></span>第 2 题 · 答错</div>
+      <div class="answer-body">
+        <div class="answer-row"><b>求极限 lim(x→0) (1-cosx)/x²</b></div>
+        <div class="answer-row"><span class="k">你的答案：</span>1</div>
+        <div class="explain" style="border-left-color:var(--error);background:var(--error-soft);"><b>解析：</b>正确答案为 1/2。使用 1-cosx ~ x²/2 进行等价无穷小替换即可。</div>
+      </div>
+    </div>
+
+    <div class="result-foot">
+      <button class="btn btn-primary" onclick="goQuiz()">重新练习</button>
+      <button class="btn btn-ghost" onclick="goMode()">返回复习中心</button>
+      <button class="btn btn-soft" onclick="alert('已加入薄弱知识点（原型示意）')">加入薄弱知识点</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 数据看板页 ============ -->
+<section class="page" id="page-dashboard">
+  <div class="page-hd">
+    <h1>学习数据</h1>
+    <div class="spacer"></div>
+    <div class="seg" id="rangeSeg" role="tablist" aria-label="时间范围">
+      <button class="active" onclick="setRange(this, '7d')">7 日</button>
+      <button onclick="setRange(this, '30d')">30 日</button>
+      <button onclick="setRange(this, 'all')">全部</button>
+    </div>
+    <select class="select" id="subjectFilter" onchange="onSubjectChange(this, 'dash')" aria-label="学科筛选">
+      <option>全部学科</option>
+      <option>数学</option><option>物理</option><option>英语</option>
+      <option>化学</option><option>计算机</option><option>历史</option>
+      <option value="＋ 自定义学科…">＋ 自定义学科…</option>
+    </select>
+    <select class="select" id="dashSub" onchange="onSubChange(this)" aria-label="细分筛选"><option>全部细分</option></select>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h2>学习趋势</h2>
+      <div style="position:relative;">
+        <svg id="trendSvg" viewBox="0 0 460 200" width="100%">
+          <line x1="30" y1="170" x2="430" y2="170" stroke="#E8E6F2"></line>
+          <line x1="30" y1="20" x2="30" y2="170" stroke="#E8E6F2"></line>
+          <polyline points="40,150 100,120 160,135 220,90 280,100 340,60 400,70" fill="none" stroke="#7C6AED" stroke-width="2"></polyline>
+          <circle class="trend-pt" cx="40"  cy="150" r="3" fill="#7C6AED" data-day="8/13" data-new="1" data-rate="68%"></circle>
+          <circle class="trend-pt" cx="100" cy="120" r="3" fill="#7C6AED" data-day="8/14" data-new="2" data-rate="73%"></circle>
+          <circle class="trend-pt" cx="160" cy="135" r="3" fill="#7C6AED" data-day="8/15" data-new="1" data-rate="71%"></circle>
+          <circle class="trend-pt" cx="220" cy="90"  r="3" fill="#7C6AED" data-day="8/16" data-new="3" data-rate="82%"></circle>
+          <circle class="trend-pt" cx="280" cy="100" r="3" fill="#7C6AED" data-day="8/17" data-new="2" data-rate="80%"></circle>
+          <circle class="trend-pt" cx="340" cy="60"  r="3" fill="#7C6AED" data-day="8/18" data-new="2" data-rate="88%"></circle>
+          <circle class="trend-pt" cx="400" cy="70"  r="3" fill="#7C6AED" data-day="8/19" data-new="1" data-rate="86%"></circle>
+        </svg>
+        <div class="trend-tip" id="trendTip"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#A09FB0;padding:0 10px;"><span>8/13</span><span>8/14</span><span>8/15</span><span>8/16</span><span>8/17</span><span>8/18</span><span>8/19</span></div>
+      <p id="trendCaption" style="font-size:12px;color:var(--ink-3);margin-top:10px;">新增笔记 12 篇 · 复习完成率 86%</p>
+    </div>
+    <div class="dash-card">
+      <h2>知识掌握度</h2>
+      <div class="ring-wrap">
+        <div class="dash-ring" style="position:relative;">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#E8E6F2" stroke-width="14"></circle>
+            <g id="dashRingSegs" transform="rotate(-90 90 90)">
+              <circle class="ring-seg" data-name="函数的定义" data-rate="已掌握" data-status="ok" data-detail="课堂已巩固，做题正确率 100%"
+                      cx="90" cy="90" r="70" fill="none" stroke="#3CC28A" stroke-width="14"
+                      stroke-dasharray="158 282" stroke-dashoffset="0"></circle>
+              <circle class="ring-seg" data-name="函数极限的定义" data-rate="已掌握" data-status="ok" data-detail="定义理解准确，例题正确率 95%"
+                      cx="90" cy="90" r="70" fill="none" stroke="#5DD6A0" stroke-width="14"
+                      stroke-dasharray="132 308" stroke-dashoffset="-158"></circle>
+              <circle class="ring-seg" data-name="极限计算技巧" data-rate="已掌握" data-status="ok" data-detail="等价无穷小、洛必达熟练应用"
+                      cx="90" cy="90" r="70" fill="none" stroke="#7BE0B0" stroke-width="14"
+                      stroke-dasharray="62 378" stroke-dashoffset="-290"></circle>
+              <circle class="ring-seg dim" data-name="导数定义" data-rate="未掌握" data-status="bad" data-detail="3 次错题，建议查看详情并复习"
+                      cx="90" cy="90" r="70" fill="none" stroke="#F87171" stroke-width="14"
+                      stroke-dasharray="53 387" stroke-dashoffset="-352"></circle>
+              <circle class="ring-seg dim" data-name="复合函数求导" data-rate="未掌握" data-status="bad" data-detail="链式法则掌握不牢，建议点击查看复习"
+                      cx="90" cy="90" r="70" fill="none" stroke="#F5A524" stroke-width="14"
+                      stroke-dasharray="35 405" stroke-dashoffset="-405"></circle>
+            </g>
+          </svg>
+          <div class="ring-tip" id="ringTip"></div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+            <span style="font-size:26px;font-weight:600;color:var(--ink-1);">80%</span>
+            <span style="font-size:12px;color:var(--ink-3);">3 已掌握 · 2 待复习</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;font-size:12px;color:var(--ink-3);text-align:center;">
+          <span style="color:var(--success);">●</span> 已掌握
+          &nbsp;&nbsp;<span style="color:var(--warning);">●</span> 待复习
+        </div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h2>薄弱知识点</h2>
+      <div class="weak-item" onclick="openNoteFromWeak('n1','洛必达法则的使用前提')" style="cursor:pointer;" title="点击查看详情"><span class="rank hot">1</span><span class="t">洛必达法则的使用前提</span><span class="badge">3 错</span></div>
+      <div class="weak-item" onclick="openNoteFromWeak('n1','等价无穷小替换条件')" style="cursor:pointer;" title="点击查看详情"><span class="rank hot">2</span><span class="t">等价无穷小替换条件</span><span class="badge">2 错</span></div>
+      <div class="weak-item" onclick="openNoteFromWeak('n2','复合函数求导法则')" style="cursor:pointer;" title="点击查看详情"><span class="rank hot">3</span><span class="t">复合函数求导法则</span><span class="badge">2 错</span></div>
+      <div class="weak-item" onclick="openNoteFromWeak('n3','定积分的几何意义')" style="cursor:pointer;" title="点击查看详情"><span class="rank">4</span><span class="t">定积分的几何意义</span><span class="badge">1 错</span></div>
+    </div>
+    <div class="dash-card">
+      <h2>知识图谱</h2>
+      <div style="position:relative;">
+        <svg id="graphSvg" viewBox="0 0 420 260" width="100%">
+          <line x1="210" y1="130" x2="120" y2="70" stroke="#E8E6F2"></line><line x1="210" y1="130" x2="120" y2="190" stroke="#E8E6F2"></line><line x1="210" y1="130" x2="300" y2="70" stroke="#E8E6F2"></line><line x1="210" y1="130" x2="300" y2="190" stroke="#E8E6F2"></line><line x1="120" y1="70" x2="60" y2="40" stroke="#E8E6F2"></line><line x1="120" y1="70" x2="300" y2="70" stroke="#E8E6F2"></line>
+          <circle class="graph-node" cx="210" cy="130" r="7" fill="#7C6AED" data-name="函数与极限" data-mastery="已复习" data-note="n1"></circle><text x="210" y="118" text-anchor="middle" font-size="10" fill="#6B6A78">函数与极限</text>
+          <circle class="graph-node" cx="120" cy="70" r="6" fill="#F87171" data-name="导数" data-mastery="未掌握 · 3 错" data-note="n2"></circle><text x="120" y="58" text-anchor="middle" font-size="10" fill="#6B6A78">导数</text>
+          <circle class="graph-node" cx="120" cy="190" r="6" fill="#7C6AED" data-name="积分" data-mastery="已掌握" data-note="n3"></circle><text x="120" y="206" text-anchor="middle" font-size="10" fill="#6B6A78">积分</text>
+          <circle class="graph-node" cx="300" cy="70" r="6" fill="#7C6AED" data-name="极限计算" data-mastery="已掌握 88%" data-note="n1"></circle><text x="300" y="58" text-anchor="middle" font-size="10" fill="#6B6A78">极限计算</text>
+          <circle class="graph-node" cx="300" cy="190" r="6" fill="#A09FB0" data-name="中值定理" data-mastery="未复习" data-note="n4"></circle><text x="300" y="206" text-anchor="middle" font-size="10" fill="#6B6A78">中值定理</text>
+          <circle class="graph-node" cx="60"  cy="40"  r="5" fill="#F87171" data-name="微分" data-mastery="未掌握 · 2 错" data-note="n2"></circle><text x="60"  y="28"  text-anchor="middle" font-size="10" fill="#6B6A78">微分</text>
+        </svg>
+        <div class="graph-tip" id="graphTip"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 帮助中心页 ============ -->
+<section class="page" id="page-help">
+  <div class="two-col">
+    <nav class="help-nav" id="helpNav">
+      <a href="javascript:void(0)" class="active" data-section="getting-started" onclick="showHelp(this)">快速上手</a>
+      <a href="javascript:void(0)" data-section="ingest" onclick="showHelp(this)">多模态录入</a>
+      <a href="javascript:void(0)" data-section="ai-notes" onclick="showHelp(this)">AI 笔记整理</a>
+      <a href="javascript:void(0)" data-section="review" onclick="showHelp(this)">复习计划</a>
+      <a href="javascript:void(0)" data-section="dashboard" onclick="showHelp(this)">数据看板</a>
+      <a href="javascript:void(0)" data-section="faq" onclick="showHelp(this)">常见问题</a>
+    </nav>
+    <div class="help-main">
+      <section class="help-sec active" id="help-getting-started">
+        <h2>快速上手</h2>
+        <p>欢迎使用 Clarify，三步把课堂内容变成结构化笔记：</p>
+        <h3>第一步：录入</h3>
+        <p>点击右上角「新建笔记」，支持拍照、截图、文本、对话、PPT、PDF、视频七种方式。</p>
+        <h3>第二步：AI 整理</h3>
+        <p>AI 自动推断学科、提炼重点与难点、归纳考试重点，并生成思维导图。识别失败时可手动选择学科。</p>
+        <h3>第三步：归档与复习</h3>
+        <p>确认无误后归档，系统会自动生成复习计划与变体题，在数据看板查看学习趋势。</p>
+        <h3>常用快捷键</h3>
+        <ul><li><span class="kbd">Ctrl+V</span> 粘贴截图 / 文本</li><li><span class="kbd">Ctrl+Enter</span> 发送对话</li></ul>
+      </section>
+      <section class="help-sec" id="help-ingest">
+        <h2>多模态录入</h2>
+        <p>Clarify 支持七种录入方式，进入「新建录入」页后通过顶部 Tab 切换。</p>
+        <ul><li>拍照 / 截图：用手机拍摄或粘贴截图，AI 自动识别文字与公式。</li><li>文本 / 对话：直接粘贴课堂内容或导入聊天记录。</li><li>PPT / PDF：上传课件，AI 提炼结构并标注重点。</li><li>视频：上传讲课视频，选择「提取音频」或「提取文字」。</li></ul>
+        <h3>文件限制</h3>
+        <p>单个文件不超过 200MB，超出会提示并拦截，需先压缩或拆分。</p>
+      </section>
+      <section class="help-sec" id="help-ai-notes">
+        <h2>AI 笔记整理</h2>
+        <p>AI 会把口语化内容转为结构化知识，并自动区分「重点 / 难点 / 段子」三类条目。</p>
+        <ul><li><b>重点</b>：紫色左边框，常考知识点。</li><li><b>难点</b>：琥珀色左边框，需要加强理解。</li><li><b>段子</b>：灰色左边框，默认折叠，按需展开。</li></ul>
+        <p>AI 识别学科失败时，会弹出「手动选择学科」下拉框兜底，生成内容可全量编辑后再归档。</p>
+      </section>
+      <section class="help-sec" id="help-review">
+        <h2>复习计划</h2>
+        <p>系统根据你的笔记与错题，自动生成每日、周度、考前三类复习计划。</p>
+        <ul><li>每日复习：10~15 分钟滚动回顾薄弱知识点。</li><li>周度复盘：本周知识点系统梳理 + 变体题。</li><li>考前突击：按考试日期倒推，优先高频考点。</li></ul>
+        <p>AI 会生成变体题并自动批改，答错的题可一键加入薄弱知识点。</p>
+      </section>
+      <section class="help-sec" id="help-dashboard">
+        <h2>数据看板</h2>
+        <p>在「学习数据」页可以查看：</p>
+        <ul><li>学习趋势折线图：新增笔记数与复习完成率。</li><li>知识掌握度环形图：整体掌握比例。</li><li>薄弱知识点：按错题数排序，点击可发起复习。</li><li>知识图谱：知识点之间的关联关系。</li></ul>
+        <p>可通过顶部的时间范围与学科筛选切换统计口径。</p>
+      </section>
+      <section class="help-sec" id="help-faq">
+        <h2>常见问题</h2>
+        <h3>识别结果有误怎么办？</h3>
+        <p>直接在笔记编辑区修改，所有 AI 生成内容均支持全量编辑。</p>
+        <h3>上传失败是什么原因？</h3>
+        <p>多为格式不支持或大小超限，请检查文件并重试。</p>
+        <h3>如何导出笔记？</h3>
+        <p>在知识库主页顶部点击「导出」，支持 PDF 与 Markdown 两种格式。</p>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="app-footer" id="appFooter">
+  <div class="footer-inner">
+    <span>© 2026 Clarify · AI 智能笔记整理师</span>
+    <div class="right">
+      <a href="javascript:void(0)" onclick="navigate('page-help')">帮助中心</a>
+      <a href="javascript:void(0)" onclick="alert('意见反馈（原型示意）')">意见反馈</a>
+    </div>
+  </div>
+</footer>
+
+<!-- 浮动原型导航 -->
+<div class="protonav">
+  <div class="panel" id="protoPanel">
+    <h4>高保真原型 · 屏幕导航</h4>
+    <button onclick="navigate('page-login');toggleProto();"><svg class="ic"><use href="#i-user"></use></svg>登录 / 注册<span class="rt">Login</span></button>
+    <button onclick="navigate('page-library');toggleProto();"><svg class="ic"><use href="#i-book"></use></svg>知识库主页<span class="rt">Library</span></button>
+    <button onclick="navigate('page-ingest');toggleProto();"><svg class="ic"><use href="#i-upload"></use></svg>多模态录入<span class="rt">Ingest</span></button>
+    <button onclick="navigate('page-chat');toggleProto();"><svg class="ic"><use href="#i-chat"></use></svg>AI 对话<span class="rt">Chat</span></button>
+    <button onclick="goMode();toggleProto();"><svg class="ic"><use href="#i-clipboard"></use></svg>复习 · 选择模式<span class="rt">Review</span></button>
+    <button onclick="goQuiz();toggleProto();"><svg class="ic"><use href="#i-clipboard"></use></svg>复习 · 逐题作答<span class="rt">Quiz</span></button>
+    <button onclick="goResult();toggleProto();"><svg class="ic"><use href="#i-clipboard"></use></svg>复习 · 批改结果<span class="rt">Result</span></button>
+    <button onclick="navigate('page-dashboard');toggleProto();"><svg class="ic"><use href="#i-chart"></use></svg>数据看板<span class="rt">Dashboard</span></button>
+    <button onclick="navigate('page-help');toggleProto();"><svg class="ic"><use href="#i-help"></use></svg>帮助中心<span class="rt">Help</span></button>
+    <button onclick="switchView('map');navigate('page-library');toggleProto();"><svg class="ic"><use href="#i-book"></use></svg>思维导图视图<span class="rt">MindMap</span></button>
+  </div>
+  <button class="toggle" onclick="toggleProto()" aria-label="原型屏幕导航"><svg class="ic" style="width:20px;height:20px;"><use href="#i-book"></use></svg></button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- 导出格式弹窗 -->
+<div class="modal-mask" id="exportModal">
+  <div class="modal-card">
+    <div class="modal-head">导出笔记 <button class="modal-close" onclick="closeModal('exportModal')" aria-label="关闭">×</button></div>
+    <div class="modal-body">
+      <p class="modal-tip">请选择导出格式（当前笔记：<span id="exportNoteName">函数与极限</span>）</p>
+      <button class="export-option" onclick="doExport('pdf')">
+        <svg class="ic" style="width:18px;height:18px;"><use href="#i-file"></use></svg>
+        <span><span class="h">PDF 文档</span><br><span class="s">适合打印与分享，保留排版样式</span></span>
+      </button>
+      <button class="export-option" onclick="doExport('png')">
+        <svg class="ic" style="width:18px;height:18px;"><use href="#i-image"></use></svg>
+        <span><span class="h">图片（PNG）</span><br><span class="s">导出为高清图片，方便截图保存</span></span>
+      </button>
+      <button class="export-option" onclick="doExport('md')">
+        <svg class="ic" style="width:18px;height:18px;"><use href="#i-text"></use></svg>
+        <span><span class="h">Markdown</span><br><span class="s">纯文本格式，方便二次编辑</span></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 归档目录弹窗 -->
+<div class="modal-mask" id="archiveModal">
+  <div class="modal-card">
+    <div class="modal-head">归档到目录 <button class="modal-close" onclick="closeModal('archiveModal')" aria-label="关闭">×</button></div>
+    <div class="modal-body">
+      <p class="modal-tip">选择笔记归档的目标目录：</p>
+      <button class="dir-option" onclick="doArchive('我的笔记')"><svg class="ic"><use href="#i-folder"></use></svg>我的笔记</button>
+      <button class="dir-option" onclick="doArchive('数学')"><svg class="ic"><use href="#i-folder"></use></svg>数学</button>
+      <button class="dir-option" onclick="doArchive('物理')"><svg class="ic"><use href="#i-folder"></use></svg>物理</button>
+      <button class="dir-option" onclick="doArchive('英语')"><svg class="ic"><use href="#i-folder"></use></svg>英语</button>
+    </div>
+  </div>
+</div>
+
+<!-- 学科管理弹层 -->
+<div class="modal-mask" id="subjectModal">
+  <div class="modal-card" style="width:520px;">
+    <div class="modal-head">学科管理 <button class="modal-close" onclick="closeModal('subjectModal')" aria-label="关闭">×</button></div>
+    <div class="modal-body">
+      <p class="modal-tip">在这里可以重命名或删除自定义学科。默认学科不可删除，可在其下自由添加/删除细分科目。</p>
+      <div class="subject-manager-list" id="subjectList"></div>
+      <div class="subject-manager-actions">
+        <button class="btn btn-soft btn-sm" onclick="addCustomSubject();renderSubjectManager();">＋ 新建学科</button>
+        <button class="btn btn-primary btn-sm" onclick="closeModal('subjectModal')">完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const routeMap = {
+    'page-login': 'clarify.app/login',
+    'page-library': 'clarify.app/library',
+    'page-ingest': 'clarify.app/ingest',
+    'page-chat': 'clarify.app/chat',
+    'page-review': 'clarify.app/review',
+    'page-dashboard': 'clarify.app/dashboard',
+    'page-help': 'clarify.app/help'
+  };
+
+  // 登录 / 注册页交互
+  function setAuthMode(mode) {
+    const isLogin = mode === 'login';
+    document.getElementById('authTabLogin').classList.toggle('on', isLogin);
+    document.getElementById('authTabRegister').classList.toggle('on', !isLogin);
+    document.getElementById('authFormLogin').style.display = isLogin ? '' : 'none';
+    document.getElementById('authFormRegister').style.display = isLogin ? 'none' : '';
+  }
+  function togglePwd(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    const willShow = inp.type === 'password';
+    inp.type = willShow ? 'text' : 'password';
+    btn.innerHTML = '<svg class="ic"><use href="#' + (willShow ? 'i-eye-off' : 'i-eye') + '"/></svg>';
+  }
+  let captchaTimer = null;
+  function sendCaptcha() {
+    const email = document.getElementById('regEmail').value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast('请先输入有效的邮箱'); return; }
+    const btn = document.getElementById('regCaptchaBtn');
+    let secs = 60;
+    btn.disabled = true;
+    btn.textContent = secs + 's 后重发';
+    captchaTimer && clearInterval(captchaTimer);
+    captchaTimer = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(captchaTimer);
+        btn.disabled = false;
+        btn.textContent = '重新获取';
+      } else {
+        btn.textContent = secs + 's 后重发';
+      }
+    }, 1000);
+    toast('验证码已发送（原型示意）');
+  }
+  function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pwd = document.getElementById('loginPwd').value;
+    if (!/^\S+@\S+\.\S+$/.test(email)) { toast('请输入有效邮箱'); return; }
+    if (pwd.length < 6) { toast('密码至少 6 位'); return; }
+    toast('登录成功，欢迎回来 ✨');
+    setTimeout(() => navigate('page-library'), 400);
+  }
+  function doRegister() {
+    const nick = document.getElementById('regNick').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pwd = document.getElementById('regPwd').value;
+    const pwd2 = document.getElementById('regPwd2').value;
+    const cap = document.getElementById('regCaptcha').value.trim();
+    const agree = document.getElementById('regAgree').checked;
+    if (!nick) return toast('请填写昵称');
+    if (!/^\S+@\S+\.\S+$/.test(email)) return toast('请输入有效邮箱');
+    if (pwd.length < 8) return toast('密码至少 8 位');
+    if (pwd !== pwd2) return toast('两次输入的密码不一致');
+    if (!cap || cap.length < 4) return toast('请填写验证码');
+    if (!agree) return toast('请先同意用户协议与隐私政策');
+    toast('注册成功 🎉 已为你登录');
+    setTimeout(() => navigate('page-library'), 400);
+  }
+
+  function navigate(pageId) {
+    // 显式绑定复习三阶段 → 复习主页
+    if (pageId === 'page-review') {
+      document.querySelectorAll('#page-review .review-max').forEach(el => el.style.display = 'none');
+      document.getElementById('reviewStageMode').style.display = 'block';
+    }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(pageId);
+    if (target) target.classList.add('active');
+
+    // 登录页覆盖
+    const isLogin = pageId === 'page-login';
+    document.getElementById('loginShell').classList.toggle('active', isLogin);
+    document.getElementById('appHeader').style.display = isLogin ? 'none' : '';
+    document.getElementById('appFooter').style.display = isLogin ? 'none' : '';
+
+    // 子导航高亮
+    document.querySelectorAll('#subnav a').forEach(a => {
+      a.classList.toggle('active', a.dataset.nav === pageId);
+    });
+    // 详情页：让 toolbar 接管顶部，隐藏常规 header / subnav
+    document.body.classList.toggle('on-note-detail', pageId === 'page-note-detail');
+    // 滚动到顶部
+    window.scrollTo(0, 0);
+  }
+
+  // 子导航点击
+  document.querySelectorAll('#subnav a').forEach(a => {
+    a.addEventListener('click', () => navigate(a.dataset.nav));
+  });
+  // 初始化学科级联下拉（在页面加载时把所有 select 用 SUBJECT_TREE 填一遍）
+  rebuildAllSubjectSelects('全部学科', '全部细分');
+  renderTagsFilter();
+
+  function toggleProto() {
+    document.getElementById('protoPanel').classList.toggle('open');
+  }
+
+  // 知识库：目录树 / 笔记项
+  function setActiveTree(el) {
+    document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+  // ================= 笔记数据模型 =================
+  const TAG_COLORS = ['c0','c1','c2','c3','c4','c5','c6','c7'];
+  function mkNote(id, title, subject, folder, time, tags, kps, diffs, supps) {
+    return { id, title, subject, folder, time, tags, kps, diffs, supps };
+  }
+  // kps: {t 标题, kind 类型(focus/difficulty/redun) 或 kinds:[多个], d 描述}
+  // diffs: {t, d};  supps: 字符串数组
+  // 统一返回某知识点的所有类型（兼容旧的 kind 字符串）
+  function kpKinds(k) {
+    if (Array.isArray(k.kinds) && k.kinds.length) return k.kinds;
+    if (k.kind) return [k.kind];
+    return ['focus'];
+  }
+  // 给某个 kp 设置多类型（用于编辑后回填）
+  function setKpKinds(k, kindsArr) {
+    k.kinds = kindsArr.length ? kindsArr : ['focus'];
+    k.kind = k.kinds[0]; // 兼容旧渲染逻辑的主类型
+  }
+  const KIND_LABELS = { focus: '重点', difficulty: '难点', redun: '段子' };
+  const NOTES = {
+    math: [
+      mkNote('n1','函数与极限','数学','math','2 小时前',
+        ['重点','难点','高等数学'],
+        [
+          {t:'函数的定义', kind:'focus', d:'设 D 为非空实数集，若对每个 x∈D，按某一确定法则 f 都有唯一的实数 y 与之对应，则称 f 为定义在 D 上的函数。'},
+          {t:'函数极限的定义', kind:'focus', d:'x→x₀ 时 f(x)→A，指当 x 无限接近 x₀ 时 f(x) 无限接近 A。'},
+          {t:'极限的计算技巧', kind:'difficulty', d:'等价无穷小替换、洛必达法则、夹逼准则与两个重要极限的适用前提。'}
+        ],
+        [
+          {t:'等价无穷小的适用条件', d:'仅在乘除因子中可替换，加减运算中需谨慎，避免高阶无穷小丢失。'},
+          {t:'洛必达法则的使用前提', d:'仅适用于 0/0 或 ∞/∞ 型未定式，且分子分母求导后极限存在或为无穷大。'}
+        ],
+        ['两个重要极限：sinx/x → 1；(1+1/x)^x → e','函数连续性与间断点的分类']),
+      mkNote('n2','导数与微分','数学','math','昨天',
+        ['重点','高等数学'],
+        [
+          {t:'导数的定义', kind:'focus', d:'f\'(x₀)=lim [f(x₀+Δx)−f(x₀)]/Δx，反映函数在该点的瞬时变化率。'},
+          {t:'求导基本公式', kind:'focus', d:'幂函数、指数、对数、三角函数导数公式，及四则运算与复合函数链式法则。'}
+        ],
+        [
+          {t:'复合函数链式法则', d:'由外向内逐层求导再相乘，注意区分外层与内层函数。'},
+          {t:'隐函数求导', d:'方程两边同时对 x 求导，把 y 视为 x 的函数。'}
+        ],
+        ['高阶导数与莱布尼茨公式','微分中值定理']),
+      mkNote('n3','定积分应用','数学','math','3 天前',
+        ['难点','高等数学'],
+        [
+          {t:'定积分几何意义', kind:'focus', d:'曲边梯形面积的代数和，可用来求面积、体积与弧长。'},
+          {t:'微积分基本定理', kind:'difficulty', d:'∫[a,b] f(x)dx = F(b)−F(a)，沟通了微分与积分。'}
+        ],
+        [
+          {t:'换元积分法', d:'换元后积分上下限需同步替换，且换元函数需单调可导。'},
+          {t:'旋转体体积', d:'绕 x 轴 V=π∫y²dx，注意截面半径的选取。'}
+        ],
+        ['定积分的凑微分技巧','反常积分的收敛性判定']),
+      mkNote('n4','无穷级数','数学','math','上周',
+        ['难点','高等数学'],
+        [
+          {t:'级数收敛概念', kind:'focus', d:'部分和数列收敛时，无穷级数收敛，其极限为级数的和。'},
+          {t:'正项级数审敛', kind:'difficulty', d:'比较判别法、比值判别法与根值判别法的适用场景。'}
+        ],
+        [
+          {t:'幂级数收敛半径', d:'由比值法求收敛半径，端点处需单独判断。'},
+          {t:'泰勒展开', d:'记住常见函数的麦克劳林展开式及其收敛域。'}
+        ],
+        ['绝对收敛与条件收敛','傅里叶级数简介'])
+    ],
+    physics: [
+      mkNote('n5','牛顿运动定律','物理','physics','2 天前',
+        ['重点','大学物理'],
+        [
+          {t:'牛顿第二定律', kind:'focus', d:'F = ma，合外力等于质量与加速度的乘积，是动力学核心方程。'},
+          {t:'惯性参考系', kind:'focus', d:'牛顿定律仅适用于惯性参考系，非惯性系需引入惯性力。'}
+        ],
+        [
+          {t:'受力分析', d:'按重力、弹力、摩擦力、外力的顺序逐一分析，避免漏力或重复。'},
+          {t:'连接体问题', d:'整体法与隔离法配合使用，先整体求加速度再隔离求内力。'}
+        ],
+        ['摩擦力方向的判断','正交分解法解动力学问题']),
+      mkNote('n6','机械能守恒','物理','physics','4 天前',
+        ['难点','大学物理'],
+        [
+          {t:'动能定理', kind:'focus', d:'合外力做功等于动能变化量：W合 = ΔEk。'},
+          {t:'机械能守恒条件', kind:'difficulty', d:'只有重力和系统内弹力做功时，机械能守恒。'}
+        ],
+        [
+          {t:'系统机械能守恒', d:'弹簧弹力做功时，弹性势能与动能、重力势能相互转化。'},
+          {t:'功能关系', d:'除重力、弹力外其他力做功等于机械能变化。'}
+        ],
+        ['变力做功的计算','能量守恒的普适性']),
+      mkNote('n7','动量与冲量','物理','physics','5 天前',
+        ['重点','大学物理'],
+        [
+          {t:'动量定理', kind:'focus', d:'FΔt = Δp，冲量等于动量的变化。'},
+          {t:'动量守恒定律', kind:'focus', d:'合外力为零时，系统总动量守恒。'}
+        ],
+        [
+          {t:'碰撞问题', d:'区分弹性、非弹性与完全非弹性碰撞中的守恒情况。'},
+          {t:'反冲与爆炸', d:'内力远大于外力时可用动量守恒近似处理。'}
+        ],
+        ['动量守恒与机械能守恒对比','质心与质心运动定理'])
+    ],
+    english: [
+      mkNote('n8','定语从句','英语','english','1 天前',
+        ['重点','英语语法'],
+        [
+          {t:'关系代词与关系副词', kind:'focus', d:'据先行词在从句中充当的成分选择 who/whom/which/that/whose/where/when/why。'},
+          {t:'that 与 which 区别', kind:'difficulty', d:'先行词有最高级/序数词/all/any 修饰时只用 that；非限制性从句用 which。'}
+        ],
+        [
+          {t:'非限制性定语从句', d:'与主句用逗号隔开，不用 that，且从句缺主语时关系词不可省略。'},
+          {t:'介词+关系代词', d:'根据从句中动词或先行词的搭配关系确定介词。'}
+        ],
+        ['关系词的省略条件','as 引导的定语从句']),
+      mkNote('n9','虚拟语气','英语','english','3 天前',
+        ['难点','英语语法'],
+        [
+          {t:'非真实条件句', kind:'difficulty', d:'与现在/过去/将来事实相反时，主从句时态需按要求后退。'},
+          {t:'名词性从句虚拟', kind:'focus', d:'suggest/insist 等词后的宾语从句用 (should)+原形。'}
+        ],
+        [
+          {t:'wish 与 if only', d:'表达对现在、过去、将来的愿望时，时态分别退后一步。'},
+          {t:'含蓄虚拟', d:'but for/without/otherwise 等隐含语气的虚拟条件。'}
+        ],
+        ['should+原形的适用动词','as if/as though 用法']),
+      mkNote('n10','非谓语动词','英语','english','5 天前',
+        ['重点','英语语法'],
+        [
+          {t:'不定式与动名词', kind:'focus', d:'to do 表目的/将来，doing 表主动/进行，done 表被动/完成。'},
+          {t:'分词作状语', kind:'difficulty', d:'现在分词表主动进行，过去分词表被动完成，逻辑主语为主句主语。'}
+        ],
+        [
+          {t:'with 复合结构', d:'with + 宾语 + 宾补，宾补可用 doing/done/to do/adj/介词短语。'},
+          {t:'独立主格', d:'分词逻辑主语与主句主语不同时，需自带逻辑主语构成独立主格。'}
+        ],
+        ['非谓语动词作定语','动名词与不定式的含义区别']),
+      mkNote('n11','时态与语态','英语','english','上周',
+        ['重点','英语语法'],
+        [
+          {t:'高频时态结构', kind:'focus', d:'掌握一般现在、一般过去、现在完成、过去完成等时态的构成与时间状语。'},
+          {t:'被动语态', kind:'focus', d:'be + 过去分词，注意不同时态下 be 的变形。'}
+        ],
+        [
+          {t:'现在完成时', d:'强调对现在的影响或持续到现在的动作，常与 since/for 连用。'},
+          {t:'进行时的特殊用法', d:'be always doing 表反复发生的感情色彩。'}
+        ],
+        ['主将从现原则','主动形式表被动含义']),
+      mkNote('n12','名词性从句','英语','english','2 周前',
+        ['难点','英语语法'],
+        [
+          {t:'主语/宾语/表语从句', kind:'focus', d:'连接词 that/whether/疑问词引导，从句用陈述语序。'},
+          {t:'同位语从句', kind:'difficulty', d:'说明抽象名词的具体内容，与定语从句在结构上需区分。'}
+        ],
+        [
+          {t:'whether 与 if', d:'引导主语、表语、同位语从句及与 or not 连用时用 whether。'},
+          {t:'that 不可省略', d:'主语、表语、同位语从句中 that 一般不省略。'}
+        ],
+        ['it 作形式主语/宾语','从句语序规则'])
+    ]
+  };
+  function allNotes() { return NOTES.math.concat(NOTES.physics, NOTES.english); }
+
+  let currentFolder = 'all';
+  let currentNoteId = 'n1';
+  let subjectFilter = '全部学科';
+  let subFilter = '全部细分';
+  let tagFilter = '全部类型';
+  let pendingNewNoteId = null;
+
+  function currentNote() {
+    return allNotes().find(n => n.id === currentNoteId) || allNotes()[0];
+  }
+  function getFolderLabel(key) {
+    return { all:'我的笔记', math:'数学', physics:'物理', english:'英语' }[key] || '我的笔记';
+  }
+  // 学科分类树：大类 → 细分科目。所有大类的细分只在该大类内有效。
+  // 用户可随时新增自定义大类与自定义细分，原型中保留在内存里即可。
+  const SUBJECT_TREE = {
+    '数学':   ['高等数学', '线性代数', '概率论', '离散数学', '统计分析', '数学建模', '数学竞赛'],
+    '物理':   ['大学物理', '力学', '热学', '电磁学', '光学', '量子物理', '相对论'],
+    '英语':   ['英语语法', '英语词汇', '英语阅读', '英语写作', '四六级', '考研英语', '雅思托福'],
+    '化学':   ['无机化学', '有机化学', '物理化学', '分析化学'],
+    '计算机': ['程序设计', '数据结构', '操作系统', '计算机网络', '数据库', '机器学习'],
+    '历史':   ['中国古代史', '中国近代史', '世界史', '史学方法']
+  };
+  function getSubjectList() { return Object.keys(SUBJECT_TREE); }
+  function getSubsForSubject(s) { return SUBJECT_TREE[s] || []; }
+  // 标准标签类型（非学科细分），用于 filter 的"类型"维度
+  const TYPE_LABELS = ['重点', '难点', '段子'];
+
+  /* 自定义学科管理 */
+  function addCustomSubject() {
+    const name = (prompt('自定义学科名称（如「我的专业」「经济」）：', '') || '').trim();
+    if (!name) return;
+    if (SUBJECT_TREE[name]) { toast('「' + name + '」已存在'); return; }
+    SUBJECT_TREE[name] = [];
+    rebuildAllSubjectSelects(name, '');
+    toast('已新增学科：' + name);
+  }
+  function addCustomSub() {
+    // 找到当前激活的第一个学科 select 的值
+    const subjSel = document.getElementById('libSubject') || document.getElementById('subjectFilter') || document.getElementById('reviewSubject');
+    const parent = subjSel ? subjSel.value : '';
+    if (!parent || parent === '全部学科') { toast('请先选择一个大类学科，再为它添加细分'); return; }
+    const name = (prompt('在「' + parent + '」下添加一个新的细分科目：', '') || '').trim();
+    if (!name) return;
+    if (SUBJECT_TREE[parent].includes(name)) { toast('该细分已存在'); return; }
+    SUBJECT_TREE[parent].push(name);
+    rebuildAllSubjectSelects(parent, name);
+    toast('已添加细分：' + parent + ' / ' + name);
+  }
+  // 三处级联 select 重建：activeSubject / activeSub 用来刷新后保持选项可见
+  const DEFAULT_SUBJECTS = ['数学', '物理', '英语', '化学', '计算机', '历史'];
+  function rebuildAllSubjectSelects(activeSubject, activeSub) {
+    const subjects = getSubjectList();
+    const subjOpts = ['全部学科'].concat(subjects).concat(['＋ 自定义学科…']).map(s =>
+      '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>'
+    ).join('');
+    const libSubject = document.getElementById('libSubject');
+    if (libSubject) {
+      libSubject.innerHTML = subjOpts;
+      libSubject.value = activeSubject || '全部学科';
+    }
+    const dashSub = document.getElementById('subjectFilter');
+    if (dashSub) {
+      dashSub.innerHTML = subjOpts;
+      dashSub.value = activeSubject || '全部学科';
+    }
+    const rvwSub = document.getElementById('reviewSubject');
+    if (rvwSub) {
+      rvwSub.innerHTML = subjOpts;
+      rvwSub.value = activeSubject || '数学';
+    }
+    refreshSubSelect(activeSubject || '全部学科', activeSub || '全部细分');
+  }
+
+  /* 学科管理弹层 */
+  function openSubjectManager() {
+    document.getElementById('subjectModal').classList.add('active');
+    renderSubjectManager();
+  }
+  function renderSubjectManager() {
+    const list = document.getElementById('subjectList');
+    if (!list) return;
+    const subjects = getSubjectList();
+    list.innerHTML = subjects.map(s => {
+      const isDefault = DEFAULT_SUBJECTS.indexOf(s) >= 0;
+      const subs = getSubsForSubject(s);
+      return '<div class="subject-manager-row' + (isDefault ? ' is-default' : '') + '" data-name="' + escapeHtml(s) + '">' +
+        '<span class="name">' + escapeHtml(s) + '</span>' +
+        '<span class="sub-count">' + subs.length + ' 个细分</span>' +
+        '<span class="badge">' + (isDefault ? '默认' : '自定义') + '</span>' +
+        '<button class="row-btn" title="重命名" onclick="startRenameSubject(this,\'' + escapeHtml(s) + '\')">' +
+          '<svg class="ic" style="width:14px;height:14px;"><use href="#i-edit"></use></svg>' +
+        '</button>' +
+        (isDefault ? '<button class="row-btn" title="默认学科不可删除" disabled style="opacity:.4;cursor:not-allowed;">' +
+          '<svg class="ic" style="width:14px;height:14px;"><use href="#i-trash"></use></svg>' +
+        '</button>' :
+        '<button class="row-btn danger" title="删除学科" onclick="deleteSubject(\'' + escapeHtml(s) + '\')">' +
+          '<svg class="ic" style="width:14px;height:14px;"><use href="#i-trash"></use></svg>' +
+        '</button>') +
+      '</div>';
+    }).join('');
+  }
+  function startRenameSubject(btn, oldName) {
+    const row = btn.closest('.subject-manager-row');
+    const nameSpan = row.querySelector('.name');
+    const cur = nameSpan.textContent;
+    nameSpan.outerHTML = '<input class="name-input" value="' + escapeHtml(cur) + '" onkeydown="if(event.key===\'Enter\'){event.preventDefault();commitRenameSubject(this,\'' + escapeHtml(cur).replace(/'/g, "\\'") + '\');}" onblur="commitRenameSubject(this,\'' + escapeHtml(cur).replace(/'/g, "\\'") + '\')">';
+    const inp = row.querySelector('.name-input');
+    if (inp) { inp.focus(); inp.select(); }
+  }
+  function commitRenameSubject(input, oldName) {
+    const row = input.closest('.subject-manager-row');
+    const newName = (input.value || '').trim();
+    if (!newName) { cancelRename(row, oldName); return; }
+    if (newName === oldName) { cancelRename(row, oldName); return; }
+    if (SUBJECT_TREE[newName]) { toast('"' + newName + '" 已存在'); cancelRename(row, oldName); return; }
+    // 重建：保留原有细分列表，把笔记里的 subject 也一起改
+    SUBJECT_TREE[newName] = SUBJECT_TREE[oldName];
+    delete SUBJECT_TREE[oldName];
+    allNotes().forEach(n => { if (n.subject === oldName) n.subject = newName; });
+    rebuildAllSubjectSelects(newName, subFilter === oldName ? '全部细分' : subFilter);
+    toast('已重命名为「' + newName + '」');
+    renderSubjectManager();
+  }
+  function cancelRename(row, name) {
+    const span = document.createElement('span');
+    span.className = 'name';
+    span.textContent = name;
+    row.querySelector('.name-input').replaceWith(span);
+  }
+  function deleteSubject(name) {
+    const count = allNotes().filter(n => n.subject === name).length;
+    if (count > 0) {
+      if (!confirm('学科「' + name + '」下还有 ' + count + ' 条笔记，删除学科将一并把笔记标记为「未分类」。确定删除？')) return;
+      allNotes().forEach(n => { if (n.subject === name) n.subject = '未分类'; });
+    } else {
+      if (!confirm('确定删除自定义学科「' + name + '」？')) return;
+    }
+    delete SUBJECT_TREE[name];
+    if (subjectFilter === name) subjectFilter = '全部学科';
+    rebuildAllSubjectSelects(subjectFilter, '全部细分');
+    renderTagsFilter();
+    filterLibrary();
+    toast('已删除学科：' + name);
+    renderSubjectManager();
+  }
+
+  function refreshSubSelect(parent, wantValue) {
+    const opts = parent === '全部学科'
+      ? ['<option>全部细分</option>']
+      : ['<option>全部细分</option>', ...getSubsForSubject(parent).map(s => '<option>' + escapeHtml(s) + '</option>'), '<option value="__custom__">＋ 自定义细分…</option>'].join('');
+    const libSub = document.getElementById('libSub');
+    if (libSub) {
+      libSub.innerHTML = opts;
+      libSub.value = wantValue || '全部细分';
+    }
+    const dashSub = document.getElementById('dashSub');
+    if (dashSub) {
+      dashSub.innerHTML = opts;
+      dashSub.value = wantValue || '全部细分';
+    }
+    const rvwSub = document.getElementById('reviewSub');
+    if (rvwSub) {
+      rvwSub.innerHTML = opts;
+      rvwSub.value = wantValue || '全部细分';
+    }
+  }
+  function onSubjectChange(sel, which) {
+    const parent = sel.value;
+    if (parent === '＋ 自定义学科…') { addCustomSubject(); sel.value = '全部学科'; return; }
+    refreshSubSelect(parent, '全部细分');
+    if (typeof renderTagsFilter === 'function') renderTagsFilter();
+    filterLibrary();
+  }
+  function onSubChange(sel) {
+    if (sel.value === '__custom__') {
+      addCustomSub();
+      const subjSel = document.getElementById('libSubject') || document.getElementById('subjectFilter');
+      const parent = subjSel ? subjSel.value : '';
+      refreshSubSelect(parent, '全部细分');
+      sel.value = '全部细分';
+    }
+    if (typeof renderTagsFilter === 'function') renderTagsFilter();
+    filterLibrary();
+  }
+  function hashCode(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return h; }
+  function tagClass(tag) { return 'tag-c' + (hashCode(tag) % TAG_COLORS.length); }
+
+  // ================= 笔记列表 / 目录 =================
+  function filteredNotes() {
+    let list = allNotes().slice();
+    if (subjectFilter !== '全部学科') {
+      list = list.filter(n => n.subject === subjectFilter);
+    } else if (currentFolder !== 'all') {
+      list = list.filter(n => n.folder === currentFolder);
+    }
+    // 细分筛选：tag 中包含选定细分即匹配（注：自定义细分也能匹配同标签笔记）
+    if (subFilter !== '全部细分') {
+      list = list.filter(n => n.tags.includes(subFilter));
+    }
+    // 类型筛选：纯类型（重点/难点/段子）
+    if (tagFilter !== '全部类型') {
+      list = list.filter(n => n.tags.includes(tagFilter));
+    }
+    return list;
+  }
+  function renderNotes() {
+    const list = filteredNotes();
+    const el = document.getElementById('noteList');
+    const titleEl = document.getElementById('noteListTitle');
+    let label = '我的笔记 · 全部';
+    if (subjectFilter !== '全部学科') label = subjectFilter + ' · 笔记';
+    else if (currentFolder !== 'all') label = getFolderLabel(currentFolder) + ' · 笔记';
+    if (tagFilter !== '全部标签') label += ' · ' + tagFilter;
+    titleEl.textContent = label;
+    if (!list.length) {
+      el.innerHTML = '<div class="list-title" style="padding:12px;text-align:center;">没有匹配的笔记</div>';
+      return;
+    }
+    el.innerHTML = list.map(n => {
+      const tags = n.tags.slice(0, 3).map(t => '<span class="tag ' + tagClass(t) + '">' + escapeHtml(t) + '</span>').join('');
+      return '<div class="note-item ' + (n.id === currentNoteId ? 'active' : '') + '" data-id="' + n.id + '" onclick="openNoteDetail(\'' + n.id + '\')">' +
+        '<div class="t">' + escapeHtml(n.title) + '</div>' +
+        '<div class="m">' + tags + '<span>' + n.time + '</span></div></div>';
+    }).join('');
+  }
+  function selectFolder(folder) {
+    currentFolder = folder;
+    document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+    const t = document.querySelector('.tree-item[data-folder="' + folder + '"]');
+    if (t) t.classList.add('active');
+    subjectFilter = folder === 'all' ? '全部学科' : getFolderLabel(folder);
+    subFilter = '全部细分';
+    tagFilter = '全部类型';
+    const ss = document.getElementById('libSubject');
+    if (ss) ss.value = subjectFilter;
+    refreshSubSelect(subjectFilter, '全部细分');
+    const tt = document.getElementById('libType');
+    if (tt) tt.value = '全部类型';
+    const list = filteredNotes();
+    if (list.length) currentNoteId = list[0].id;
+    renderNotes();
+    renderCurrentNote();
+    renderTagsFilter();
+    toast('已切换目录：' + getFolderLabel(folder));
+  }
+  function setActiveNote(id) {
+    currentNoteId = id;
+    document.querySelectorAll('.note-item').forEach(i => i.classList.toggle('active', i.dataset.id === id));
+    renderCurrentNote();
+  }
+
+  // ================= 笔记详情渲染 / 编辑 =================
+  function renderTagChips(n) {
+    const chips = n.tags.map(t =>
+      '<span class="tag ' + tagClass(t) + '">' + escapeHtml(t) + '<span class="tag-x" data-tag="' + escapeHtml(t) + '">×</span></span>'
+    ).join('');
+    return chips + '<span class="tag tag-add" data-addtag>+ 标签</span>';
+  }
+  function renderKps(n) {
+    return n.kps.map((k, i) => {
+      const kinds = kpKinds(k);
+      const cls = 'is-multi-' + kinds[0];
+      const tagsHtml = kinds.map(kn => '<span class="tag ' + kn + '">' + (KIND_LABELS[kn] || kn) + '</span>').join('');
+      return '<div class="kp kp-block ' + cls + '">' +
+        '<div class="body">' +
+          '<div class="kpt" contenteditable="true" data-id="' + n.id + '" data-field="kpt" data-i="' + i + '" onblur="saveField(this)">' + escapeHtml(k.t) + '</div>' +
+          '<div class="kpd" contenteditable="true" data-id="' + n.id + '" data-field="kpd" data-i="' + i + '" onblur="saveField(this)">' + escapeHtml(k.d) + '</div>' +
+          '<div class="kp-tags">' + tagsHtml + '</div>' +
+        '</div>' +
+        '<div class="chev" onclick="toggleKp(this.parentElement)"><svg class="ic"><use href="#i-chevron"/></svg></div>' +
+      '</div>';
+    }).join('');
+  }
+  function renderCurrentNote() {
+    const n = currentNote();
+    if (!n) return;
+    const nt = document.getElementById('noteTitle');
+    if (nt) nt.value = n.title;
+    const crumb = document.getElementById('crumb');
+    if (crumb) crumb.innerHTML = '我的笔记 / ' + escapeHtml(n.subject) + ' / <b>' + escapeHtml(n.title) + '</b>';
+    const meta = document.getElementById('noteMeta');
+    if (meta) meta.innerHTML = renderTagChips(n) + '<span style="color:var(--ink-3);font-size:12px;">' + n.time + '</span>';
+    const kpList = document.getElementById('kpList');
+    if (kpList) kpList.innerHTML = '<div class="block-title">重点知识点</div>' + renderKps(n);
+    const diffList = document.getElementById('diffList');
+    if (diffList) diffList.innerHTML = n.diffs.map((d, i) =>
+      '<div class="diff-item">' +
+        '<div class="t" contenteditable="true" data-id="' + n.id + '" data-field="difft" data-i="' + i + '" onblur="saveField(this)">' + escapeHtml(d.t) + '</div>' +
+        '<div class="d" contenteditable="true" data-id="' + n.id + '" data-field="diffd" data-i="' + i + '" onblur="saveField(this)">' + escapeHtml(d.d) + '</div>' +
+      '</div>'
+    ).join('');
+    const suppList = document.getElementById('suppList');
+    if (suppList) suppList.innerHTML = n.supps.map((s, i) =>
+      '<li contenteditable="true" data-id="' + n.id + '" data-field="supp" data-i="' + i + '" onblur="saveField(this)">' + escapeHtml(s) + '</li>'
+    ).join('');
+  }
+  function saveField(el) {
+    const n = allNotes().find(x => x.id === el.dataset.id);
+    if (!n) return;
+    const i = parseInt(el.dataset.i, 10);
+    const f = el.dataset.field;
+    const v = el.innerText.replace(/\s+/g, ' ').trim();
+    if (f === 'kpt') n.kps[i].t = v;
+    else if (f === 'kpd') n.kps[i].d = v;
+    else if (f === 'difft') n.diffs[i].t = v;
+    else if (f === 'diffd') n.diffs[i].d = v;
+    else if (f === 'supp') n.supps[i] = v;
+    const st = document.getElementById('saveState');
+    if (st) st.textContent = '已自动保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    toast('修改已保存');
+  }
+
+  // ================= 标签自定义 / 筛选 =================
+  function addTag() {
+    const n = currentNote();
+    const name = prompt('输入自定义标签名称（如：易错、期末重点）', '考试重点');
+    if (!name || !name.trim()) return;
+    const t = name.trim();
+    if (n.tags.includes(t)) { toast('该标签已存在'); return; }
+    n.tags.push(t);
+    renderCurrentNote();
+    renderTagsFilter();
+    toast('已添加标签：' + t);
+  }
+  function removeTag(tag) {
+    const n = currentNote();
+    n.tags = n.tags.filter(t => t !== tag);
+    renderCurrentNote();
+    renderTagsFilter();
+    toast('已移除标签：' + tag);
+  }
+  function renderTagsFilter() {
+    // libType 下拉只显示"当前学科 + 当前细分"范围内的标签与类型，
+    // 这样选了「数学」就不会再出现「大学物理 / 英语语法」之类的跨学科标签。
+    const sel = document.getElementById('libType');
+    if (!sel) return;
+    const known = TYPE_LABELS.slice();
+    const subj = (document.getElementById('libSubject') && document.getElementById('libSubject').value) || '全部学科';
+    const subEl = document.getElementById('libSub');
+    const sub = subEl ? subEl.value : '全部细分';
+    allNotes().forEach(n => {
+      if (subj !== '全部学科' && n.subject !== subj) return;
+      if (sub !== '全部细分' && !n.tags.includes(sub)) return;
+      n.tags.forEach(t => {
+        if (known.indexOf(t) < 0 && t !== '重点' && t !== '难点' && t !== '段子') known.push(t);
+      });
+    });
+    if (tagFilter !== '全部类型' && known.indexOf(tagFilter) < 0) tagFilter = '全部类型';
+    sel.innerHTML = ['全部类型'].concat(known).map(t =>
+      '<option' + (t === tagFilter ? ' selected' : '') + '>' + escapeHtml(t) + '</option>'
+    ).join('');
+  }
+  function filterLibrary() {
+    const libSubEl = document.getElementById('libSub');
+    const libTypeEl = document.getElementById('libType');
+    subjectFilter = (document.getElementById('libSubject') && document.getElementById('libSubject').value) || '全部学科';
+    subFilter = libSubEl ? libSubEl.value : '全部细分';
+    tagFilter = libTypeEl ? libTypeEl.value : '全部类型';
+    document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+    const folderKey = ({ '数学': 'math', '物理': 'physics', '英语': 'english', '化学': 'chemistry', '计算机': 'cs', '历史': 'history' })[subjectFilter] || 'all';
+    const t = document.querySelector('.tree-item[data-folder="' + folderKey + '"]');
+    if (t) t.classList.add('active');
+    const list = filteredNotes();
+    if (list.length) currentNoteId = list[0].id;
+    renderNotes();
+    renderCurrentNote();
+    toast('筛选完成：' + subjectFilter + (subFilter !== '全部细分' ? ' · ' + subFilter : '') + (tagFilter !== '全部类型' ? ' · ' + tagFilter : ''));
+  }
+  function toggleTree(el) {
+    const sub = el.nextElementSibling;
+    if (sub) sub.style.display = sub.style.display === 'none' ? '' : 'none';
+  }
+  function toggleKp(el) { el.classList.toggle('collapsed'); }
+
+  // 思维导图 / 笔记视图切换
+  function switchView(mode) {
+    document.getElementById('segNote').classList.toggle('active', mode === 'note');
+    document.getElementById('segMap').classList.toggle('active', mode === 'map');
+    document.getElementById('noteView').classList.toggle('hidden', mode !== 'note');
+    document.getElementById('mindView').classList.toggle('active', mode === 'map');
+    if (mode === 'map') {
+      const c = document.getElementById('mindCanvas');
+      if (c) c.__mindInited = false; // 强制重新绑定
+      setTimeout(() => { initMindCanvas(); mindFit(); }, 50);
+    }
+  }
+
+  // ================= 思维导图编辑 =================
+  let selectedMindNode = null;
+  function selectMindNode(g) {
+    if (selectedMindNode && selectedMindNode !== g) {
+      const pr = selectedMindNode.querySelector('rect');
+      if (pr && pr.dataset.prev) pr.setAttribute('stroke', pr.dataset.prev);
+    }
+    selectedMindNode = g;
+    const r = g.querySelector('rect');
+    if (r) {
+      if (!r.dataset.prev) r.dataset.prev = r.getAttribute('stroke') || 'none';
+      r.setAttribute('stroke', '#7C6AED');
+      r.setAttribute('stroke-width', '2');
+    }
+  }
+  function editMindNode(el) {
+    selectMindNode(el);
+    const textEl = el.querySelector('text');
+    const cur = textEl ? textEl.textContent : '';
+    const val = prompt('修改节点内容：', cur);
+    if (val !== null && val.trim() !== '') {
+      textEl.textContent = val.trim();
+      toast('节点已更新');
+    }
+  }
+  function mindCenter(g) {
+    const r = g.querySelector('rect');
+    if (r) return { x: parseFloat(r.getAttribute('x')) + parseFloat(r.getAttribute('width')) / 2,
+                    y: parseFloat(r.getAttribute('y')) + parseFloat(r.getAttribute('height')) / 2 };
+    const t = g.querySelector('text');
+    if (t) return { x: parseFloat(t.getAttribute('x')), y: parseFloat(t.getAttribute('y')) };
+    return { x: 310, y: 210 };
+  }
+  function addMindNode() {
+    if (!selectedMindNode) { toast('请先点击选择一个父节点'); return; }
+    const val = prompt('输入新子节点的内容：', '新知识点');
+    if (!val || !val.trim()) return;
+    const parent = mindCenter(selectedMindNode);
+    const r = selectedMindNode.querySelector('rect');
+    const w = r ? parseFloat(r.getAttribute('width')) : 120;
+    const n = selectedMindNode._childCount || 0;
+    selectedMindNode._childCount = n + 1;
+    const nx = parent.x + w / 2 + 90;
+    const ny = parent.y - 30 + n * 70;
+    const edges = document.getElementById('mindEdges');
+    const nodes = document.getElementById('mindNodes');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', parent.x + w / 2);
+    line.setAttribute('y1', parent.y);
+    line.setAttribute('x2', nx);
+    line.setAttribute('y2', ny);
+    line.setAttribute('stroke', '#E8E6F2');
+    edges.appendChild(line);
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'mind-node');
+    g.setAttribute('ondblclick', 'editMindNode(this)');
+    g.innerHTML = '<rect x="' + nx + '" y="' + (ny - 20) + '" width="120" height="40" rx="8" fill="#fff" stroke="#7C6AED"/><text x="' + (nx + 60) + '" y="' + (ny + 5) + '" text-anchor="middle" fill="#2B2A35" font-size="13">' + escapeHtml(val.trim()) + '</text>';
+    nodes.appendChild(g);
+    selectMindNode(g);
+    toast('已添加子节点');
+  }
+  function removeMindNode() {
+    if (!selectedMindNode) { toast('请先选择一个节点'); return; }
+    const r = selectedMindNode.querySelector('rect');
+    if (r && r.getAttribute('fill') === '#7C6AED') { toast('根节点不可删除'); return; }
+    const c = mindCenter(selectedMindNode);
+    if (!confirm('确定删除该节点吗？')) return;
+    const edges = document.getElementById('mindEdges');
+    Array.from(edges.querySelectorAll('line')).forEach(l => {
+      const x1 = parseFloat(l.getAttribute('x1')), y1 = parseFloat(l.getAttribute('y1'));
+      const x2 = parseFloat(l.getAttribute('x2')), y2 = parseFloat(l.getAttribute('y2'));
+      if ((Math.abs(x2 - c.x) < 60 && Math.abs(y2 - c.y) < 30) || (Math.abs(x1 - c.x) < 60 && Math.abs(y1 - c.y) < 30)) l.remove();
+    });
+    selectedMindNode.remove();
+    selectedMindNode = null;
+    toast('节点已删除');
+  }
+  /* ===== 思维导图视图变换（scale + translate） ===== */
+  const mindView = { scale: 1, tx: 0, ty: 0 };
+  let mindDragStart = null;  // 拖拽起点：{ startX, startY, tx, ty }
+  function applyMindView() {
+    const stage = document.getElementById('mindStage');
+    if (!stage) return;
+    stage.style.transform = 'translate(' + mindView.tx + 'px,' + mindView.ty + 'px) scale(' + mindView.scale + ')';
+    const pct = document.getElementById('mindZoomPercent');
+    if (pct) pct.textContent = Math.round(mindView.scale * 100) + '%';
+  }
+  function mindZoom(delta) {
+    setMindScale(mindView.scale + delta, null);
+  }
+  function setMindScale(newScale, anchor /* {x,y} 屏幕坐标，可空 */) {
+    const old = mindView.scale;
+    const ns = Math.max(0.4, Math.min(2.6, newScale));
+    if (anchor) {
+      // 在 anchor 处保持视觉不动：先反推缩放前该点在 stage 上的坐标
+      const stage = document.getElementById('mindStage');
+      const canvas = document.getElementById('mindCanvas');
+      if (stage && canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const ax = anchor.x - rect.left;
+        const ay = anchor.y - rect.top;
+        // 当前 stage 上的坐标
+        const sx = (ax - mindView.tx) / old;
+        const sy = (ay - mindView.ty) / old;
+        mindView.tx = ax - sx * ns;
+        mindView.ty = ay - sy * ns;
+      }
+    }
+    mindView.scale = ns;
+    applyMindView();
+  }
+  function mindReset() {
+    mindView.scale = 1; mindView.tx = 0; mindView.ty = 0;
+    applyMindView();
+  }
+  function mindFit() {
+    // 以 0.8 倍的 100% 适配画布（svg 1:1 渲染，svg width 取决于 canvas）
+    mindView.scale = 1; mindView.tx = 0; mindView.ty = 0;
+    applyMindView();
+    const canvas = document.getElementById('mindCanvas');
+    const svg = document.getElementById('mindSvg');
+    if (canvas && svg) {
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      const sw = svg.clientWidth;
+      const sh = svg.clientHeight;
+      const s = Math.min(cw / sw, ch / sh) * 0.9;
+      mindView.tx = (cw - sw * s) / 2;
+      mindView.ty = (ch - sh * s) / 2;
+      mindView.scale = s;
+      applyMindView();
+    }
+  }
+  function initMindCanvas() {
+    const canvas = document.getElementById('mindCanvas');
+    if (!canvas) return;
+    // 解绑旧 listener，避免重复触发
+    if (canvas.__mindHandlers) {
+      canvas.removeEventListener('mousedown', canvas.__mindHandlers.mousedown);
+      canvas.removeEventListener('wheel', canvas.__mindHandlers.wheel);
+      canvas.removeEventListener('touchstart', canvas.__mindHandlers.touchstart);
+      canvas.removeEventListener('touchmove', canvas.__mindHandlers.touchmove);
+      canvas.removeEventListener('touchend', canvas.__mindHandlers.touchend);
+    }
+    canvas.__mindInited = true;
+    // 拖拽平移
+    const onMouseDown = function (e) {
+      // 节点上的 mousedown 不进入拖拽
+      if (e.target.closest('.mind-node')) {
+        // 单击节点选中；浏览器自身会上发 dblclick 触发编辑
+        selectMindNode(e.target.closest('.mind-node'));
+        return;
+      }
+      mindDragStart = { startX: e.clientX, startY: e.clientY, tx: mindView.tx, ty: mindView.ty };
+      canvas.classList.add('is-dragging');
+      e.preventDefault();
+    };
+    canvas.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', function (e) {
+      if (!mindDragStart) return;
+      mindView.tx = mindDragStart.tx + (e.clientX - mindDragStart.startX);
+      mindView.ty = mindDragStart.ty + (e.clientY - mindDragStart.startY);
+      applyMindView();
+    });
+    window.addEventListener('mouseup', function () {
+      if (!mindDragStart) return;
+      mindDragStart = null;
+      const c = document.getElementById('mindCanvas');
+      if (c) c.classList.remove('is-dragging');
+    });
+    // 滚轮缩放：直接滚轮 = 缩放（鼠标位置为锚点）；Shift+滚轮 = 水平/垂直平移
+    const onWheel = function (e) {
+      e.preventDefault();
+      if (e.shiftKey) {
+        mindView.tx -= e.deltaX || e.deltaY;
+        mindView.ty -= e.deltaY;
+        applyMindView();
+        return;
+      }
+      const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      setMindScale(mindView.scale * factor, { x: e.clientX, y: e.clientY });
+    };
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    // 触碰支持：单指拖动，双指缩放
+    let touchState = null;
+    const onTouchStart = function (e) {
+      if (e.touches.length === 1) {
+        const t = e.touches[0];
+        if (e.target.closest('.mind-node')) return;
+        touchState = { mode: 'pan', startX: t.clientX, startY: t.clientY, tx: mindView.tx, ty: mindView.ty };
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchState = { mode: 'pinch', startDist: Math.hypot(dx, dy), startScale: mindView.scale,
+                       cx: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                       cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+      }
+    };
+    const onTouchMove = function (e) {
+      if (!touchState) return;
+      if (touchState.mode === 'pan' && e.touches.length === 1) {
+        const t = e.touches[0];
+        mindView.tx = touchState.tx + (t.clientX - touchState.startX);
+        mindView.ty = touchState.ty + (t.clientY - touchState.startY);
+        applyMindView();
+        e.preventDefault();
+      } else if (touchState.mode === 'pinch' && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const newScale = Math.max(0.4, Math.min(2.6, touchState.startScale * (dist / touchState.startDist)));
+        setMindScale(newScale, { x: touchState.cx, y: touchState.cy });
+        e.preventDefault();
+      }
+    };
+    const onTouchEnd = function () { touchState = null; };
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd);
+    canvas.__mindHandlers = { mousedown: onMouseDown, wheel: onWheel, touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd };
+  }
+
+  // 录入页
+  function setIngestMode(btn) {
+    document.querySelectorAll('#ingestTabs .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const m = btn.dataset.mode;
+    const isText = m === 'text';
+    document.getElementById('uploadZone').style.display = isText ? 'none' : '';
+    document.getElementById('textInput').classList.toggle('active', isText);
+    document.getElementById('audioMode').classList.toggle('active', m === 'audio');
+  }
+  function toggleParseChip(chip) {
+    chip.classList.toggle('on');
+    const onChips = document.querySelectorAll('.parse-chip.on');
+    const hint = document.getElementById('parseHint');
+    if (!onChips.length) {
+      chip.classList.add('on'); // 至少保留一个
+      if (hint) hint.textContent = '请至少选择一种输出格式';
+      toast('请至少选择一种输出格式');
+      return;
+    }
+    const names = Array.from(onChips).map(c => c.textContent.trim()).join(' / ');
+    if (hint) hint.textContent = '已选择 ' + names + '，点击「开始解析」即可生成';
+  }
+
+  // 音频录入模式
+  let audioBlob = null;
+  let audioName = '';
+  let mediaRecorder = null;
+  let recChunks = [];
+  let recStartTs = 0;
+  let recTimer = null;
+
+  function onAudioFile(input) {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    audioBlob = f;
+    audioName = f.name;
+    const url = URL.createObjectURL(f);
+    showAudioPlayer(url, f.name);
+    toast('已选择音频：' + f.name);
+  }
+  function showAudioPlayer(url, name) {
+    const p = document.getElementById('audioPlayer');
+    document.getElementById('audioName').textContent = name;
+    const audio = document.getElementById('audioPreview');
+    audio.src = url;
+    p.style.display = 'flex';
+  }
+  function toggleRecord() {
+    const btn = document.getElementById('recBtn');
+    const status = document.getElementById('recStatus');
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast('当前浏览器不支持录音，请改用上传音频文件');
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        recChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recChunks, { type: 'audio/webm' });
+          audioBlob = blob;
+          audioName = '录音-' + new Date().toLocaleString('zh-CN', { hour12: false }) + '.webm';
+          showAudioPlayer(URL.createObjectURL(blob), audioName);
+          stream.getTracks().forEach(t => t.stop());
+          clearInterval(recTimer);
+        };
+        mediaRecorder.start();
+        recStartTs = Date.now();
+        btn.classList.add('recording');
+        btn.innerHTML = '<span class="rec-dot"></span><span>停止录音</span>';
+        document.getElementById('recBtnText'); // noop
+        status.style.display = 'block';
+        recTimer = setInterval(() => {
+          const sec = Math.floor((Date.now() - recStartTs) / 1000);
+          const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+          const ss = String(sec % 60).padStart(2, '0');
+          document.getElementById('recTime').textContent = mm + ':' + ss;
+        }, 250);
+      }).catch(() => toast('无法获取麦克风权限，请检查浏览器设置'));
+    } else {
+      mediaRecorder.stop();
+      btn.classList.remove('recording');
+      btn.innerHTML = '<svg class="ic" style="width:16px;height:16px;"><use href="#i-mic"></use></svg><span id="recBtnText">重新录音</span>';
+      status.style.display = 'none';
+    }
+  }
+
+  function queueAdd() {
+    const q = document.getElementById('uploadQueue');
+    if (q.children.length >= 2) { alert('演示队列已满（原型示意）'); return; }
+    const div = document.createElement('div');
+    div.className = 'queue-item';
+    div.innerHTML = '<svg class="ic"><use href="#i-file"/></svg><span class="fname" style="flex:1;">高等数学课堂笔记.pdf</span><span class="progress"><i style="width:100%;"></i></span><span class="fstat ok">解析完成</span>';
+    q.appendChild(div);
+  }
+  function getSelectedParseFormats() {
+    return Array.from(document.querySelectorAll('.parse-chip.on')).map(c => c.dataset.format);
+  }
+  function parseAll() {
+    const fmts = getSelectedParseFormats();
+    const z = document.getElementById('uploadZone');
+    const mode = document.querySelector('#ingestTabs .tab.active').dataset.mode;
+    if (z && z.style.display !== 'none' && document.getElementById('uploadQueue').children.length === 0) { queueAdd(); }
+    if (mode === 'audio' && !audioBlob) {
+      toast('请先上传或录制一段音频');
+      return;
+    }
+    const btn = document.getElementById('parseBtn');
+    const old = btn.innerHTML;
+    btn.innerHTML = '<svg class="ic" style="width:14px;height:14px;"><use href="#i-spark"/></svg> AI 解析中...';
+    btn.disabled = true;
+    document.getElementById('gotoNoteBtn').style.display = 'none';
+    setTimeout(() => {
+      btn.innerHTML = old; btn.disabled = false;
+      document.getElementById('gotoNoteBtn').style.display = '';
+      addNewNoteFromParse(fmts);
+      const labelMap = { note: '结构化笔记', mindmap: '思维导图', transcript: '音视频转写文字' };
+      const names = fmts.map(f => labelMap[f] || f).join(' / ');
+      toast('解析完成，已生成：' + names);
+    }, 900);
+  }
+  function addNewNoteFromParse(fmts) {
+    const ta = document.querySelector('#textInput textarea');
+    const text = ta ? ta.value.trim() : '';
+    const title = text ? text.slice(0, 12) : (audioName ? audioName.replace(/\.[^.]+$/, '') : '课堂笔记（新）');
+    const note = mkNote('n-new-' + Date.now(), title, '数学', 'math', '刚刚', ['重点', '高等数学'],
+      [
+        {t:'知识点提炼', kind:'focus', d:'AI 已从原始内容中自动提炼重点知识，你可直接在此点击文字进行编辑。'},
+        {t:'易错 / 考试重点', kind:'difficulty', d:'此处由 AI 标记为潜在难点，请复核确认。'}
+      ],
+      [{t:'待确认难点', d:'AI 识别出的难点，供你审阅调整。'}],
+      ['原始材料已归档，可随时回看。']);
+    note.media = [];
+    if (audioBlob) {
+      note.media.push({
+        kind: 'audio',
+        name: audioName || '录音.webm',
+        url: URL.createObjectURL(audioBlob)
+      });
+    }
+    if (Array.isArray(fmts) && fmts.includes('transcript')) {
+      note.transcript = '【AI 转写示例】在本节课中，老师主要讲解了函数与极限的…\n（原型展示：完整的转写文字将出现在笔记详情页）';
+    }
+    if (Array.isArray(fmts) && fmts.includes('mindmap')) {
+      note.hasMindmap = true;
+    }
+    NOTES.math.unshift(note);
+    currentFolder = 'math';
+    subjectFilter = '数学';
+    tagFilter = '全部标签';
+    pendingNewNoteId = note.id;
+  }
+  function gotoNewNote() {
+    navigate('page-library');
+    switchView('note');
+    document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+    const t = document.querySelector('.tree-item[data-folder="' + currentFolder + '"]');
+    if (t) t.classList.add('active');
+    const ss = document.getElementById('libSubject');
+    if (ss) ss.value = subjectFilter;
+    refreshSubSelect(subjectFilter, '全部细分');
+    const tt = document.getElementById('libType');
+    if (tt) tt.value = '全部类型';
+    currentNoteId = pendingNewNoteId || allNotes()[0].id;
+    pendingNewNoteId = null;
+    renderNotes();
+    renderCurrentNote();
+    renderTagsFilter();
+    toast('已跳转到新生成的笔记，可直接编辑');
+  }
+
+  // ================= 笔记详情编辑页 =================
+  let detailNoteId = null;
+  function openNoteDetail(id) {
+    const n = allNotes().find(x => x.id === id);
+    if (!n) return;
+    currentNoteId = id;
+    detailNoteId = id;
+    if (!Array.isArray(n.media)) n.media = [];
+    renderDetail(n);
+    navigate('page-note-detail');
+    document.querySelectorAll('.subnav a').forEach(a => a.classList.toggle('active', a.dataset.nav === 'page-library'));
+  }
+  function openNoteFromWeak(noteId, kpTitle) {
+    openNoteDetail(noteId);
+    toast('已跳到「' + kpTitle + '」对应详情，可直接编辑复习');
+    setTimeout(() => {
+      const block = document.getElementById('detailKps').querySelector('.kp-edit-block');
+      if (block) block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+  function backToLibrary() {
+    navigate('page-library');
+    switchView('note');
+    renderNotes();
+    renderCurrentNote();
+  }
+  function saveNoteDetail() {
+    const n = allNotes().find(x => x.id === detailNoteId);
+    if (!n) return;
+    const newTitle = document.getElementById('detailTitle').value.trim() || n.title;
+    n.title = newTitle;
+    // kps
+    const kpEls = document.querySelectorAll('#detailKps .kp-edit-block');
+    n.kps = Array.from(kpEls).map(el => {
+      const t = el.querySelector('.kp-t').value.trim() || '未命名知识点';
+      const d = el.querySelector('.kp-d').value.trim();
+      const kinds = Array.from(el.querySelectorAll('.kind-pick input[type=checkbox]'))
+        .filter(cb => cb.checked).map(cb => cb.value);
+      setKpKinds({ t, d, kinds }, kinds);
+      return { t, d, kinds, kind: kinds[0] || 'focus' };
+    });
+    // diffs
+    const diffEls = document.querySelectorAll('#detailDiffs .diff-edit-block');
+    n.diffs = Array.from(diffEls).map(el => ({
+      t: el.querySelector('.d-t').value.trim() || '未命名难点',
+      d: el.querySelector('.d-d').value.trim()
+    }));
+    // supps
+    const suppEls = document.querySelectorAll('#detailSupps li input');
+    n.supps = Array.from(suppEls).map(i => i.value.trim()).filter(Boolean);
+    const ts = new Date();
+    n.time = '已编辑 ' + ts.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    flashDetailSaved();
+    renderNotes();
+    renderCurrentNote();
+    toast('保存成功，笔记已更新');
+    backToLibrary();
+  }
+  function flashDetailSaved() {
+    const el = document.getElementById('detailSavedHint');
+    if (!el) return;
+    el.textContent = '✓ 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    setTimeout(() => { el.textContent = '已自动保存'; }, 1600);
+  }
+
+  function renderDetail(n) {
+    document.getElementById('detailTitle').value = n.title || '';
+    const meta = document.getElementById('detailMetaRow');
+    const tags = (n.tags || []).map(t => '<span class="tag ' + tagClass(t) + '">' + escapeHtml(t) + '</span>').join('');
+    meta.innerHTML = tags + '<span>·</span><span>' + escapeHtml(n.subject || '') + '</span><span>·</span><span>' + escapeHtml(n.time || '') + '</span>';
+
+    const mediaZone = document.getElementById('detailMediaZone');
+    mediaZone.innerHTML = (n.media || []).map((m, i) =>
+      '<div class="media-chip kind-' + m.kind + '">' +
+        '<svg class="ic" style="width:14px;height:14px;"><use href="#i-' + (m.kind === 'image' ? 'image' : (m.kind === 'audio' ? 'mic' : 'video')) + '"></use></svg>' +
+        '<span class="name">' + escapeHtml(m.name) + '</span>' +
+        '<span class="x" onclick="removeMedia(' + i + ')">×</span>' +
+      '</div>'
+    ).join('') || '<span style="color:var(--ink-3);font-size:13px;">尚无附件，可点击下方按钮插入图片 / 音频 / 视频。</span>';
+
+    const kps = document.getElementById('detailKps');
+    kps.innerHTML = (n.kps || []).map((k, i) => detailKpHtml(k, i)).join('');
+    // 默认展示第一段媒体预览
+    const previewBox = document.getElementById('detailMediaPreview');
+    const first = (n.media || [])[0];
+    if (first && first.url) {
+      previewBox.style.display = 'flex';
+      if (first.kind === 'image') previewBox.innerHTML = '<img src="' + first.url + '" alt="">';
+      else if (first.kind === 'audio') previewBox.innerHTML = '<audio controls src="' + first.url + '"></audio>';
+      else if (first.kind === 'video') previewBox.innerHTML = '<video controls src="' + first.url + '"></video>';
+    } else {
+      previewBox.style.display = 'none';
+      previewBox.innerHTML = '';
+    }
+
+    const diffs = document.getElementById('detailDiffs');
+    diffs.innerHTML = (n.diffs || []).map((d, i) => detailDiffHtml(d, i)).join('');
+    const supps = document.getElementById('detailSupps');
+    supps.innerHTML = (n.supps || []).map(s =>
+      '<li><input value="' + escapeHtml(s) + '" oninput="markDetailChanged()"><span class="x" onclick="this.parentElement.remove();markDetailChanged();">×</span></li>'
+    ).join('');
+
+    // 清理上次渲染留下的派生块
+    if (detailExtraBox) detailExtraBox.innerHTML = '';
+    detailExtraBox = document.createElement('div');
+    detailExtraBox.id = 'detailExtraBox';
+    document.querySelector('.detail-body').appendChild(detailExtraBox);
+    if (n.transcript) {
+      const tEl = document.createElement('div');
+      tEl.style.cssText = 'margin-top:14px;padding:14px;border:1px dashed var(--primary);background:var(--primary-soft);border-radius:var(--r-card);font-size:13px;color:var(--ink-2);white-space:pre-wrap;';
+      tEl.innerHTML = '<b style="color:var(--primary);display:block;margin-bottom:6px;">🎙 音视频转写文字（AI 生成）</b>' + escapeHtml(n.transcript);
+      detailExtraBox.appendChild(tEl);
+    }
+    if (n.hasMindmap) {
+      const mEl = document.createElement('div');
+      mEl.style.cssText = 'margin-top:14px;padding:14px;border:1px dashed var(--primary);background:var(--primary-soft);border-radius:var(--r-card);font-size:13px;color:var(--ink-2);';
+      mEl.innerHTML = '🧠 <b style="color:var(--primary);">思维导图已生成</b>，可在知识库的「思维导图」视图中查看完整结构。';
+      detailExtraBox.appendChild(mEl);
+    }
+  }
+  let detailExtraBox = null;
+  function detailKpHtml(k, i) {
+    const kinds = kpKinds(k);
+    // 边框颜色取第一个 kind
+    const firstKind = kinds[0] || 'focus';
+    // 已选类型 chip
+    const tagsHtml = kinds.map(kn => '<span class="tag-chip ' + kn + '">' + (KIND_LABELS[kn] || kn) + '</span>').join('');
+    function opt(kn) {
+      const on = kinds.includes(kn);
+      return '<label data-kind="' + kn + '" class="' + (on ? 'on' : '') + '">' +
+        '<input type="checkbox" value="' + kn + '" ' + (on ? 'checked' : '') + ' onchange="toggleKpKind(this);markDetailChanged()">' +
+        '<span class="chk"></span><span>' + (KIND_LABELS[kn] || kn) + '</span>' +
+      '</label>';
+    }
+    return '<div class="kp-edit-block kind-' + firstKind + '">' +
+      '<div class="row">' +
+        '<input class="kp-t" value="' + escapeHtml(k.t || '') + '" placeholder="知识点标题" oninput="markDetailChanged()">' +
+        '<button class="del" onclick="this.parentElement.parentElement.remove();markDetailChanged();" title="删除">×</button>' +
+      '</div>' +
+      '<textarea class="kp-d" placeholder="知识点详细描述…" oninput="markDetailChanged()">' + escapeHtml(k.d || '') + '</textarea>' +
+      '<div class="row"><div class="kind-pick">' +
+        opt('focus') + opt('difficulty') + opt('redun') +
+      '</div></div>' +
+      '<div class="kind-tags">' + tagsHtml + '</div>' +
+    '</div>';
+  }
+  function detailDiffHtml(d, i) {
+    return '<div class="diff-edit-block">' +
+      '<div class="row">' +
+        '<input class="d-t" value="' + escapeHtml(d.t || '') + '" placeholder="难点标题" oninput="markDetailChanged()">' +
+        '<button class="del" onclick="this.parentElement.parentElement.remove();markDetailChanged();" title="删除">×</button>' +
+      '</div>' +
+      '<textarea class="d-d" placeholder="难点详细解析…" oninput="markDetailChanged()">' + escapeHtml(d.d || '') + '</textarea>' +
+    '</div>';
+  }
+  function addDetailKp() {
+    const wrap = document.getElementById('detailKps');
+    const i = wrap.children.length;
+    const node = document.createElement('div');
+    node.innerHTML = detailKpHtml({ t: '', d: '', kind: 'focus' }, i);
+    wrap.appendChild(node.firstChild);
+    markDetailChanged();
+  }
+  function addDetailDiff() {
+    const wrap = document.getElementById('detailDiffs');
+    wrap.insertAdjacentHTML('beforeend', detailDiffHtml({ t: '', d: '' }, wrap.children.length));
+    markDetailChanged();
+  }
+  function addDetailSupp() {
+    const ul = document.getElementById('detailSupps');
+    ul.insertAdjacentHTML('beforeend',
+      '<li><input value="" placeholder="补充材料内容" oninput="markDetailChanged()"><span class="x" onclick="this.parentElement.remove();markDetailChanged();">×</span></li>'
+    );
+    markDetailChanged();
+  }
+  // 多选切换：勾上／取消某个类型，立刻更新视觉边框 + tag chips
+  function toggleKpKind(input) {
+    const block = input.closest('.kp-edit-block');
+    const checked = Array.from(block.querySelectorAll('.kind-pick input[type=checkbox]'))
+      .filter(i => i.checked).map(i => i.value);
+    // 如果一个都没勾，回到默认
+    const finalKinds = checked.length ? checked : ['focus'];
+    // 更新 label.on
+    block.querySelectorAll('.kind-pick label').forEach(lbl => {
+      const cb = lbl.querySelector('input');
+      lbl.classList.toggle('on', cb.checked);
+    });
+    // 更新边框（取第一个）
+    block.classList.remove('kind-focus', 'kind-difficulty', 'kind-redun');
+    block.classList.add('kind-' + finalKinds[0]);
+    // 更新 tag chips
+    const tagsBox = block.querySelector('.kind-tags');
+    tagsBox.innerHTML = finalKinds.map(kn => '<span class="tag-chip ' + kn + '">' + (KIND_LABELS[kn] || kn) + '</span>').join('');
+  }
+  function markDetailChanged() {
+    const el = document.getElementById('detailSavedHint');
+    if (el) el.textContent = '● 内容已修改（未保存）';
+  }
+
+  function onMediaImage(input) { addMediaFile(input, 'image', 'image'); }
+  function onMediaAudio(input) { addMediaFile(input, 'audio', 'mic'); }
+  function onMediaVideo(input) { addMediaFile(input, 'video', 'video'); }
+  function addMediaFile(input, kind, ico) {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    const n = allNotes().find(x => x.id === detailNoteId);
+    if (!n) return;
+    if (!Array.isArray(n.media)) n.media = [];
+    n.media.push({ kind: kind, name: f.name, url: URL.createObjectURL(f) });
+    renderDetail(n);
+    markDetailChanged();
+    input.value = '';
+    toast('已插入' + (kind === 'image' ? '图片' : kind === 'audio' ? '音频' : '视频'));
+  }
+  function removeMedia(idx) {
+    const n = allNotes().find(x => x.id === detailNoteId);
+    if (!n || !n.media) return;
+    n.media.splice(idx, 1);
+    renderDetail(n);
+    markDetailChanged();
+  }
+
+  // ================= 看板交互 =================
+  function initDashboardInteractions() {
+    // 学习趋势点
+    document.querySelectorAll('.trend-pt').forEach(c => {
+      c.addEventListener('mouseenter', e => showTrendTip(c));
+      c.addEventListener('mousemove', e => positionTip(document.getElementById('trendTip'), e));
+      c.addEventListener('mouseleave', () => document.getElementById('trendTip').classList.remove('show'));
+    });
+    // 环形图分段
+    document.querySelectorAll('.ring-seg').forEach(c => {
+      c.addEventListener('mouseenter', () => showRingTip(c));
+      c.addEventListener('mousemove', e => positionTip(document.getElementById('ringTip'), e));
+      c.addEventListener('mouseleave', () => {
+        document.getElementById('ringTip').classList.remove('show');
+        c.classList.remove('lit');
+      });
+      c.addEventListener('click', () => onRingClick(c));
+    });
+    // 知识图谱节点
+    document.querySelectorAll('.graph-node').forEach(c => {
+      c.addEventListener('mouseenter', () => showGraphTip(c));
+      c.addEventListener('mousemove', e => positionTip(document.getElementById('graphTip'), e));
+      c.addEventListener('mouseleave', () => document.getElementById('graphTip').classList.remove('show'));
+      c.addEventListener('click', () => onGraphClick(c));
+    });
+  }
+  function positionTip(tip, e) {
+    if (!tip) return;
+    const card = tip.closest('.dash-card');
+    const rect = card ? card.getBoundingClientRect() : { left: 0, top: 0 };
+    tip.style.left = (e.clientX - rect.left) + 'px';
+    tip.style.top = (e.clientY - rect.top - 6) + 'px';
+    tip.classList.add('show');
+  }
+  function showTrendTip(c) {
+    const tip = document.getElementById('trendTip');
+    if (!tip) return;
+    tip.innerHTML = '<b>' + c.dataset.day + '</b><br>新增笔记 ' + c.dataset.new + ' 篇 · 复习完成率 ' + c.dataset.rate;
+    c.setAttribute('r', '6');
+  }
+  function showRingTip(c) {
+    const tip = document.getElementById('ringTip');
+    if (!tip) return;
+    const status = c.dataset.status === 'bad' ? '未掌握' : '已掌握';
+    const color = c.dataset.status === 'bad' ? '未掌握' : '已掌握';
+    tip.innerHTML = '<b>' + escapeHtml(c.dataset.name) + '</b><br>' +
+      '<span style="opacity:.85;">' + status + '</span><br>' +
+      '<span style="opacity:.7;">' + escapeHtml(c.dataset.detail || '') + '</span>';
+    c.classList.add('lit');
+  }
+  function showGraphTip(c) {
+    const tip = document.getElementById('graphTip');
+    if (!tip) return;
+    tip.innerHTML = '<b>' + escapeHtml(c.dataset.name) + '</b><br>' +
+      '<span style="opacity:.85;">掌握度：' + escapeHtml(c.dataset.mastery || '—') + '</span>';
+  }
+  function onRingClick(c) {
+    if (c.dataset.status !== 'bad') {
+      toast('该知识点已掌握，无需复习');
+      return;
+    }
+    // 跳到对应笔记详情（用 n1 数学总笔记示意）
+    openNoteDetail('n1');
+    toast('跳转到详情页，可复习「' + c.dataset.name + '」');
+  }
+  function onGraphClick(c) {
+    const noteId = c.dataset.note;
+    if (!noteId) { toast('暂无对应笔记'); return; }
+    openNoteDetail(noteId);
+  }
+
+  // 对话页
+  const CHATS = {
+    c1: { title: '极限计算技巧答疑', body: '<div class="msg user"><div class="bubble">极限计算有哪些常用方法？</div></div><div class="msg ai"><div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"/></svg></div><div class="bubble">极限计算常用的方法主要有以下几种：<ol><li><b>等价无穷小替换</b>：sinx~x、tanx~x 等；</li><li><b>洛必达法则</b>：适用于 0/0、∞/∞ 型；</li><li><b>夹逼准则</b>：处理复杂和式；</li><li><b>两个重要极限</b>：sinx/x 与 (1+1/x)^x。</li></ol></div></div>' },
+    c2: { title: '物理力学公式整理', body: '<div class="msg user"><div class="bubble">帮我整理牛顿运动定律相关公式</div></div><div class="msg ai"><div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"/></svg></div><div class="bubble">核心公式如下：<ol><li><b>牛顿第二定律</b>：F = ma</li><li><b>动能</b>：Ek = ½mv²</li><li><b>动量</b>：p = mv</li></ol>需要我把它们整理成笔记归档吗？</div></div>' },
+    c3: { title: '英语定语从句讲解', body: '<div class="msg user"><div class="bubble">定语从句中 that 和 which 怎么区分？</div></div><div class="msg ai"><div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"/></svg></div><div class="bubble">简单区分：<ol><li>先行词是<b>物</b>，that / which 均可；</li><li>先行词被<b>序数词、最高级、all/any</b> 修饰时，只用 that；</li><li><b>非限制性定语从句</b>只用 which。</li></ol></div></div>' },
+    c4: { title: '考研政治唯物论复盘', body: '<div class="msg user"><div class="bubble">物质和意识的关系考点？</div></div><div class="msg ai"><div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"/></svg></div><div class="bubble">核心考点：<ol><li><b>物质决定意识</b>，意识是物质的反映；</li><li><b>意识具有能动作用</b>，能正确反映并反作用于客观事物。</li></ol></div></div>' }
+  };
+
+  function openChat(el) {
+    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    const c = CHATS[el.dataset.chat];
+    if (!c) return;
+    document.getElementById('chatTitle').textContent = c.title;
+    document.getElementById('chatBody').innerHTML = c.body;
+  }
+  function clearHistory() {
+    if (!confirm('确定要清空全部历史会话吗？')) return;
+    document.getElementById('chatHist').innerHTML = '<div class="list-title" style="padding:12px;text-align:center;color:var(--ink-3);">暂无历史会话</div>';
+    document.getElementById('chatTitle').textContent = '新建对话';
+    document.getElementById('chatBody').innerHTML = '';
+    toast('已清空历史会话');
+  }
+  function newChat() {
+    document.getElementById('chatBody').innerHTML = '';
+    document.getElementById('chatText').focus();
+    toast('已新建对话');
+  }
+  function sendMessage() {
+    const t = document.getElementById('chatText');
+    const v = t.value.trim();
+    if (!v) { alert('请输入内容（原型示意）'); return; }
+    const body = document.getElementById('chatBody');
+    body.insertAdjacentHTML('beforeend', '<div class="msg user"><div class="bubble">' + escapeHtml(v) + '</div></div>');
+    t.value = '';
+    body.insertAdjacentHTML('beforeend',
+      '<div class="msg ai"><div class="avatar-ai"><svg class="ic" style="width:15px;height:15px;"><use href="#i-spark"/></svg></div><div class="bubble">这是一个演示回复：我会围绕该知识点展开讲解，并关联你已有的笔记。<span class="cursor"></span></div></div>');
+    body.scrollTop = body.scrollHeight;
+  }
+  function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // 复习页：三阶段
+  function showStage(mode) {
+    const m = document.getElementById('reviewStageMode');
+    const q = document.getElementById('reviewStageQuiz');
+    const r = document.getElementById('reviewStageResult');
+    m.style.display = mode === 'mode' ? 'block' : 'none';
+    q.style.display = mode === 'quiz' ? 'block' : 'none';
+    r.style.display = mode === 'result' ? 'block' : 'none';
+  }
+  function goMode() { showStage('mode'); }
+  function goQuiz() { showStage('quiz'); }
+  function goResult() { showStage('result'); }
+  function selectMode(el) {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function pickOption(el) {
+    el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // 帮助页
+  function showHelp(el) {
+    document.querySelectorAll('#helpNav a').forEach(a => a.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.help-sec').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('help-' + el.dataset.section);
+    if (target) target.classList.add('active');
+  }
+
+  // 数据看板：时间范围 / 学科筛选
+  const RANGE_CAPTION = {
+    '7d': '新增笔记 12 篇 · 复习完成率 86%',
+    '30d': '新增笔记 36 篇 · 复习完成率 79%',
+    'all': '累计新增笔记 128 篇 · 复习完成率 74%'
+  };
+  function setRange(el, key) {
+    document.querySelectorAll('#rangeSeg button').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const cap = document.getElementById('trendCaption');
+    if (cap) cap.textContent = RANGE_CAPTION[key] || '';
+    toast('已切换时间范围：' + el.textContent.trim());
+  }
+  function filterSubject(sel) {
+    toast('已按学科筛选：' + sel.value);
+  }
+
+  // 导出 / 归档 / 轻提示
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+  // 导出 / 归档 / 弹窗
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function openExport() {
+    const n = currentNote();
+    const nameEl = document.getElementById('exportNoteName');
+    if (nameEl) nameEl.textContent = n.title;
+    openModal('exportModal');
+  }
+  function openArchive() { openModal('archiveModal'); }
+  function doExport(format) {
+    closeModal('exportModal');
+    const n = currentNote();
+    if (format === 'md') exportMarkdown();
+    else if (format === 'png') exportPng(n);
+    else if (format === 'pdf') exportPdf(n);
+  }
+  function doArchive(dir) {
+    closeModal('archiveModal');
+    const n = currentNote();
+    const map = { '数学': 'math', '物理': 'physics', '英语': 'english' };
+    if (map[dir]) n.folder = map[dir];
+    toast('已归档到「' + dir + '」');
+    const dot = document.querySelector('.edit-bar');
+    const ts = new Date();
+    if (dot) dot.innerHTML = '<span class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--success);"></span> 已归档 · <span style="color:var(--ink-3);">' + ts.toLocaleDateString('zh-CN') + ' ' + ts.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) + '</span><span style="flex:1"></span><a href="javascript:void(0)" onclick="toast(\'已打开版本历史（原型示意）\')">查看版本历史</a>';
+  }
+  function downloadBlob(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  }
+  function exportMarkdown() {
+    const n = currentNote();
+    const title = n.title || '未命名笔记';
+    const md = '# ' + title + '\n\n> 学科：' + n.subject + ' · 时间：' + n.time + ' · 标签：' + n.tags.join(' / ') + '\n\n## 重点知识点\n\n'
+      + n.kps.map(k => '- ' + k.t + '（' + kpKinds(k).map(kn => KIND_LABELS[kn] || kn).join(' / ') + '）\n  ' + k.d).join('\n')
+      + '\n\n## 难点标注\n\n' + n.diffs.map(d => '- ' + d.t + '\n  ' + d.d).join('\n')
+      + '\n\n## 补充材料\n\n' + n.supps.map(s => '- ' + s).join('\n') + '\n';
+    downloadBlob(md, title + '.md', 'text/markdown;charset=utf-8');
+    toast('已导出 ' + title + '.md');
+  }
+  function exportPng(n) {
+    const W = 800, padX = 56, padTop = 56, padBottom = 56;
+    const bodyW = W - padX * 2;
+    const F = 'PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif';
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    const blocks = [];
+    const B = (color, size, weight, text, mt) => blocks.push({ color, font: (weight ? weight + ' ' : '') + size + 'px ' + F, text, mt: mt || 0, lh: size });
+    B('#7C6AED', 26, '600', n.title, 0);
+    B('#A09FB0', 13, '', n.subject + ' · ' + n.time + ' · 标签：' + n.tags.join(' / '), 8);
+    B('#7C6AED', 20, '600', '重点知识点', 22);
+    n.kps.forEach(k => { B('#2B2A35', 16, '600', '▎' + k.t, 8); B('#6B6A78', 14, '', k.d, 4); });
+    B('#F5A524', 20, '600', '难点标注', 22);
+    n.diffs.forEach(d => { B('#2B2A35', 16, '600', '▎' + d.t, 8); B('#6B6A78', 14, '', d.d, 4); });
+    B('#7C6AED', 20, '600', '补充材料', 22);
+    n.supps.forEach(s => B('#6B6A78', 14, '', '· ' + s, 4));
+    const lines = [];
+    blocks.forEach(b => {
+      ctx.font = b.font;
+      let cur = '';
+      let first = true;
+      for (const ch of b.text) {
+        if (ctx.measureText(cur + ch).width > bodyW) { lines.push({ color: b.color, font: b.font, text: cur, mt: first ? b.mt : 0, lh: b.lh }); cur = ch; first = false; }
+        else cur += ch;
+      }
+      lines.push({ color: b.color, font: b.font, text: cur, mt: first ? b.mt : 0, lh: b.lh });
+    });
+    let H = padTop;
+    lines.forEach(l => { H += l.mt + l.lh + 6; });
+    H += padBottom;
+    c.width = W; c.height = Math.ceil(H);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, W, c.height);
+    ctx.textBaseline = 'top';
+    let y = padTop;
+    lines.forEach(l => {
+      y += l.mt;
+      ctx.font = l.font; ctx.fillStyle = l.color;
+      ctx.fillText(l.text, padX, y);
+      y += l.lh + 6;
+    });
+    c.toBlob(function (blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (n.title || '笔记') + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('已导出 ' + (n.title || '笔记') + '.png');
+    }, 'image/png');
+  }
+  function exportPdf(n) {
+    const w = window.open('', '_blank');
+    if (!w) { toast('请允许弹出窗口以导出 PDF'); return; }
+    const html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>' + escapeHtml(n.title) + '</title><style>' +
+      'body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#2B2A35;padding:48px;max-width:760px;margin:0 auto;}' +
+      'h1{color:#7C6AED;font-size:26px;}.meta{color:#A09FB0;font-size:13px;margin:8px 0 24px;}h2{font-size:20px;margin:24px 0 12px;}' +
+      '.kp{border-left:3px solid #7C6AED;padding:8px 14px;margin:8px 0;}.kp.diff{border-left-color:#F5A524;}' +
+      'b{font-size:16px;}p{color:#6B6A78;font-size:14px;margin:4px 0 0;}ul{color:#6B6A78;font-size:14px;padding-left:20px;}</style></head><body>' +
+      '<h1>' + escapeHtml(n.title) + '</h1><div class="meta">' + n.subject + ' · ' + n.time + ' · 标签：' + n.tags.map(escapeHtml).join(' / ') + '</div>' +
+      '<h2>重点知识点</h2>' + n.kps.map(k => {
+        const kinds = kpKinds(k);
+        const cls = kinds.includes('difficulty') ? ' diff' : (kinds.includes('redun') ? ' redun' : '');
+        const labelHtml = kinds.map(kn => '<span style="font-size:11px;color:' + (kn === 'difficulty' ? '#F5A524' : (kn === 'redun' ? '#A09FB0' : '#7C6AED')) + ';margin-right:6px;">[' + (KIND_LABELS[kn] || kn) + ']</span>').join('');
+        return '<div class="kp' + cls + '"><b>' + labelHtml + escapeHtml(k.t) + '</b><p>' + escapeHtml(k.d) + '</p></div>';
+      }).join('') +
+      '<h2>难点标注</h2>' + n.diffs.map(d => '<div class="kp diff"><b>' + escapeHtml(d.t) + '</b><p>' + escapeHtml(d.d) + '</p></div>').join('') +
+      '<h2>补充材料</h2><ul>' + n.supps.map(s => '<li>' + escapeHtml(s) + '</li>').join('') + '</ul>' +
+      '</body></html>';
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function () { w.focus(); w.print(); }, 300);
+    toast('已打开打印窗口，选择「另存为 PDF」即可');
+  }
+
+  // ================= 初始化绑定 =================
+  document.getElementById('mindNodes').addEventListener('click', function (e) {
+    const g = e.target.closest('.mind-node');
+    if (g) selectMindNode(g);
+  });
+  document.getElementById('noteMeta').addEventListener('click', function (e) {
+    if (e.target.classList.contains('tag-x')) removeTag(e.target.dataset.tag);
+    else if (e.target.classList.contains('tag-add')) addTag();
+  });
+  document.querySelectorAll('.modal-mask').forEach(m => {
+    m.addEventListener('click', function (e) { if (e.target === m) m.classList.remove('active'); });
+  });
+
+  function initNotes() {
+    if (document.querySelector('.tree-item[data-folder="all"] .count'))
+      document.querySelector('.tree-item[data-folder="all"] .count').textContent = allNotes().length;
+    if (document.querySelector('.tree-item[data-folder="math"] .count'))
+      document.querySelector('.tree-item[data-folder="math"] .count').textContent = NOTES.math.length;
+    if (document.querySelector('.tree-item[data-folder="physics"] .count'))
+      document.querySelector('.tree-item[data-folder="physics"] .count').textContent = NOTES.physics.length;
+    if (document.querySelector('.tree-item[data-folder="english"] .count'))
+      document.querySelector('.tree-item[data-folder="english"] .count').textContent = NOTES.english.length;
+    renderNotes();
+    renderTagsFilter();
+    renderCurrentNote();
+    initDashboardInteractions();
+  }
+  initNotes();
+
+  // Ctrl+Enter 发送
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      const t = document.getElementById('chatText');
+      if (t && document.activeElement === t) { e.preventDefault(); sendMessage(); }
+    }
+  });
+</script>
+
+</body></html>
