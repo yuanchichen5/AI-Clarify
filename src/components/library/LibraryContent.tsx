@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -65,7 +64,6 @@ interface DisplayNote {
 
 export function LibraryContent({
   serverNotes,
-  serverFolders,
   supabaseConfigured,
   keyword = "",
 }: LibraryContentProps) {

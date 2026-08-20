@@ -37,7 +37,25 @@ function detectKind(mime: string, name: string): string {
   return "unknown";
 }
 
-function validateFile(f: File): string | null {
+async function checkDuration(f: File): Promise<number | null> {
+  if (!f.type.startsWith("video/") && !f.type.startsWith("audio/")) return null;
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(f);
+    const el = document.createElement(f.type.startsWith("video/") ? "video" : "audio");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(el.duration);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    el.src = url;
+  });
+}
+
+async function validateFile(f: File): Promise<string | null> {
   const kind = detectKind(f.type, f.name);
   if (kind === "unknown") return "不支持的格式，仅支持图片 / PDF / PPT / 音视频 / 文本";
   if (kind === "image" && f.size > SIZE_LIMITS.image.max)
@@ -46,6 +64,11 @@ function validateFile(f: File): string | null {
     return `文档大小超限（${SIZE_LIMITS.pdf.label}）`;
   if ((kind === "video" || kind === "audio") && f.size > SIZE_LIMITS.video.max)
     return `音视频大小超限（${SIZE_LIMITS.video.label}）`;
+  // M3-6: 时长校验（≤120 分钟）
+  if (kind === "video" || kind === "audio") {
+    const duration = await checkDuration(f);
+    if (duration && duration > 120 * 60) return "时长超限（≤ 120 分钟）";
+  }
   return null;
 }
 
@@ -70,20 +93,21 @@ export function IngestUploader({ mode, onQueueChange }: IngestUploaderProps) {
   );
 
   const addFiles = useCallback(
-    (fileList: FileList | File[]) => {
+    async (fileList: FileList | File[]) => {
       const files = Array.from(fileList);
-      const next: QueueItem[] = files.map((f) => {
+      const next: QueueItem[] = [];
+      for (const f of files) {
         idRef.current += 1;
-        const err = validateFile(f);
-        return {
+        const err = await validateFile(f);
+        next.push({
           id: "q" + idRef.current,
           name: f.name,
           size: f.size,
           mime: f.type,
           status: err ? "failed" : "ready",
           error: err ?? undefined,
-        };
-      });
+        });
+      }
       emit([...items, ...next]);
     },
     [emit, items]
