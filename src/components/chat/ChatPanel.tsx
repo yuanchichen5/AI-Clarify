@@ -30,6 +30,7 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     setChats(loadDemoChats());
@@ -161,8 +162,17 @@ export function ChatPanel() {
 
   return (
     <div className="flex items-start gap-6">
-      {/* ===== 左栏 260px ===== */}
-      <aside className="flex w-[260px] shrink-0 flex-col gap-4">
+      {/* ===== 左栏 260px（移动端抽屉） ===== */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-40 bg-ink-1/30 lg:hidden" onClick={() => setDrawerOpen(false)} />
+      )}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-[260px] shrink-0 flex-col gap-4 overflow-y-auto bg-bg px-4 py-4 transition-transform duration-200",
+          "lg:static lg:z-auto lg:translate-x-0 lg:bg-transparent lg:px-0 lg:py-0",
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <Button block onClick={newChat}>
           <Icon name="plus" className="h-3.5 w-3.5" />
           新建对话
@@ -196,7 +206,14 @@ export function ChatPanel() {
       {/* ===== 右栏 ===== */}
       <Card padded={false} className="flex min-h-[70vh] flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-border px-5 py-3.5">
-          <div className="text-base font-medium">{active?.title ?? "AI 对话助手"}</div>
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-card text-ink-2 lg:hidden"
+            aria-label="打开会话列表"
+          >
+            <Icon name="chat" className="h-4 w-4" />
+          </button>
+          <div className="truncate text-base font-medium">{active?.title ?? "AI 对话助手"}</div>
           <span className="flex-1" />
           <Button variant="soft" size="sm" onClick={noteFromChat} disabled={!active || active.messages.length === 0}>
             <Icon name="book" className="h-3.5 w-3.5" />

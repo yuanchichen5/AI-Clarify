@@ -78,6 +78,7 @@ export function LibraryContent({
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [colorPickerFor, setColorPickerFor] = useState<string | null>(null);
   const [batchAction, setBatchAction] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     setDemoNotes(loadDemoNotes());
@@ -240,8 +241,20 @@ export function LibraryContent({
   // ---- 渲染 ----
   return (
     <div className="flex items-start gap-6">
-      {/* ===== 左侧边栏 280px ===== */}
-      <aside className="flex w-[280px] shrink-0 flex-col gap-4">
+      {/* ===== 左侧边栏 280px（移动端抽屉） ===== */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-ink-1/30 lg:hidden"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-[280px] shrink-0 flex-col gap-4 overflow-y-auto bg-bg px-4 py-4 transition-transform duration-200",
+          "lg:static lg:z-auto lg:translate-x-0 lg:bg-transparent lg:px-0 lg:py-0",
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <Button href="/ingest" block>
           <Icon name="plus" className="h-3.5 w-3.5" />
           新建笔记
@@ -439,6 +452,13 @@ export function LibraryContent({
 
         {/* 工具栏 */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-btn border border-border bg-card text-ink-2 lg:hidden"
+            aria-label="打开目录"
+          >
+            <Icon name="folder" className="h-4 w-4" />
+          </button>
           <div className="inline-flex overflow-hidden rounded-btn border border-border">
             <button
               onClick={() => setViewMode("note")}

@@ -76,4 +76,43 @@ clarify-app/
 | M1 核心闭环（录入 → 解析 → 笔记 → 归档） | ✅ 完成（演示模式可全链路走通） |
 | M2 知识库与检索（目录 / 列表 / 语义检索 / 思维导图） | ✅ 完成（演示模式可用） |
 | M3 复习与对话 | ✅ 完成（演示模式闭环可用） |
-| M4 洞察与打磨（看板 / 导出 / 响应式 / 部署） | ⏳ 待开发 |
+| M4 洞察与打磨（看板 / 导出 / 响应式 / 部署） | ✅ 完成（MVP 可演示） |
+
+
+## 部署（M4-6 · Vercel + Supabase）
+
+### Vercel 部署
+
+```bash
+# 方式一：Vercel CLI
+npm i -g vercel
+vercel            # 首次登录后自动识别 Next.js 项目
+vercel --prod     # 生产部署
+
+# 方式二：GitHub 集成
+# Vercel 控制台 → New Project → Import 本仓库 → Framework: Next.js → Deploy
+```
+
+部署后在 Vercel 项目 Settings → Environment Variables 填入：
+
+| 变量 | 说明 |
+|------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `DASHSCOPE_API_KEY` | 通义千问（Qwen3-Max / Qwen-VL） |
+| `DEEPSEEK_API_KEY` | DeepSeek（降本模型） |
+| `MOCK_AI` | 可选；`true` 时未配置密钥走演示解析 |
+
+### Supabase 初始化清单
+
+1. 创建项目 → SQL Editor 依次执行 `supabase/migrations/0001_init.sql`、`0002_search.sql`
+2. Authentication → Providers 确认 Email 可用；可关闭邮件确认便于测试
+3. Storage → 新建 `uploads` bucket（private）
+4. Project Settings → API 复制 URL 与 anon key 到 `.env.local`
+5. 免费项目 1 周无活动会暂停：配置 cron 定时唤醒（如 GitHub Actions 每 3 天 ping 一次首页）
+
+### 生产注意事项
+
+- Vercel Hobby 函数 10s 超时：长任务（音视频/多页文档）走异步 job + 轮询（已实现）
+- 向量检索：`note_embeddings` HNSW 索引已建，单用户 <1 万条无压力
+- 中文 PDF 导出依赖运行时加载 Noto Sans SC 字体，失败自动降级 Markdown

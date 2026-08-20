@@ -10,6 +10,8 @@ import { DiffEditorBlock, type EditableDiff } from "./DiffEditorBlock";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/store/draft";
 import { getDemoNote, saveDemoNote, type DemoNote } from "@/lib/store/demo-notes";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { ExportNoteButton } from "@/components/export/ExportNoteButton";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export interface NoteEditorProps {
@@ -180,6 +182,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         };
         saveDemoNote(note);
       }
+      track("note_archived", { title, subject, kpCount: kps.length });
       clearDraft(noteId);
       router.push("/library");
       router.refresh();
@@ -322,6 +325,10 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
             {kps.length} 个知识点 · {diffs.length} 个难点 · 自动保存已开启
           </span>
           <span className="flex-1" />
+          <ExportNoteButton
+            note={{ title, subject, kps, diffs, supps }}
+            className="mr-1"
+          />
           <Button variant="ghost" onClick={() => router.push("/library")}>
             放弃并返回
           </Button>

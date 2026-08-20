@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { IngestUploader, type QueueItem } from "@/components/ingest/IngestUploader";
 import { cn } from "@/lib/utils";
 import type { IngestMode } from "@/types";
+import { track } from "@/lib/analytics";
 
 const MODES: { key: IngestMode; label: string; icon: string }[] = [
   { key: "camera", label: "拍照", icon: "camera" },
@@ -65,6 +66,7 @@ export default function IngestPage() {
 
   // 提交解析
   async function submitParse(payload: Record<string, unknown>) {
+    track("ingest_start", { mode: payload.mode });
     setParsing(true);
     setError(null);
     try {
@@ -84,6 +86,7 @@ export default function IngestPage() {
         const jobJson = await jobRes.json();
         const job = jobJson.data;
         if (job.status === "done") {
+          track("parse_done", { mode: payload.mode });
           handleParseResult(job.result);
           return;
         }

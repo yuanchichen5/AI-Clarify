@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Textarea } from "@/components/ui/Textarea";
-import { generatePlan } from "@/lib/review/generator";
+import { generatePlan, type PlanItem } from "@/lib/review/generator";
 import { generateQuizFromKp, gradeAnswer, type GradeResult, type QuizQuestion } from "@/lib/review/quiz";
 import { loadDemoNotes } from "@/lib/store/demo-notes";
+import { recordAttempts } from "@/lib/store/demo-attempts";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import type { ReviewPlanType } from "@/types";
 
@@ -30,6 +32,7 @@ export function ReviewFlow() {
   const [mode, setMode] = useState<ReviewPlanType>("daily");
   const [subject, setSubject] = useState("全部学科");
   const [quizzes, setQuizzes] = useState<QuizQuestion[]>([]);
+  const [planItems, setPlanItems] = useState<PlanItem[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [current, setCurrent] = useState(0);
   const [results, setResults] = useState<GradeResult[]>([]);
@@ -53,6 +56,7 @@ export function ReviewFlow() {
       return;
     }
     const qs = items.map((item, i) => generateQuizFromKp(item, i));
+    setPlanItems(items);
     setQuizzes(qs);
     setAnswers({});
     setCurrent(0);
@@ -62,8 +66,28 @@ export function ReviewFlow() {
 
   function submitQuiz() {
     const graded = quizzes.map((q) => gradeAnswer(q, answers[q.quizId] ?? ""));
+    // 记录作答（看板数据源）
+    recordAttempts(
+      quizzes.map((q, i) => ({
+        title: q.title,
+        subject: planItemSubject(q.kpId),
+        noteId: planItemNoteId(q.kpId),
+        isCorrect: graded[i].isCorrect,
+        answered: graded[i].status === "answered",
+      }))
+    );
+    track("review_submit", { total: quizzes.length, mode });
     setResults(graded);
     setStage("result");
+  }
+
+  function planItemSubject(kpId: string): string {
+    const item = planItems.find((p) => p.kpId === kpId);
+    return item?.subject ?? "未分类";
+  }
+  function planItemNoteId(kpId: string): string {
+    const item = planItems.find((p) => p.kpId === kpId);
+    return item?.noteId ?? "";
   }
 
   // ---- 批改结果统计 ----

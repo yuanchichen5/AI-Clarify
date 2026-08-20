@@ -121,14 +121,15 @@ export default function HelpPage() {
   const section = SECTIONS.find((s) => s.key === active) ?? SECTIONS[0];
 
   return (
-    <div className="flex items-start gap-6 pt-6">
-      <nav className="w-[220px] shrink-0 overflow-hidden rounded-card border border-border bg-card">
+    <div className="flex flex-col items-stretch gap-4 pt-6 lg:flex-row lg:items-start lg:gap-6">
+      <nav className="flex shrink-0 gap-1 overflow-x-auto rounded-card border border-border bg-card p-1.5 lg:w-[220px] lg:flex-col lg:overflow-visible lg:p-0">
         {SECTIONS.map((s) => (
           <button
             key={s.key}
             onClick={() => setActive(s.key)}
             className={cn(
-              "block w-full border-b border-border px-4 py-3 text-left text-sm text-ink-2 transition-colors last:border-b-0 hover:bg-bg hover:text-ink-1",
+              "shrink-0 whitespace-nowrap rounded-btn px-3.5 py-2.5 text-sm text-ink-2 transition-colors hover:bg-bg hover:text-ink-1",
+              "lg:w-full lg:whitespace-normal lg:rounded-none lg:border-b lg:border-border lg:px-4 lg:py-3 lg:text-left lg:last:border-b-0",
               active === s.key &&
                 "border-l-[3px] border-l-primary bg-primary-soft font-medium text-primary"
             )}
